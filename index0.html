@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <title>{{ user.name }}'s Application</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" href="./bootstrap/css/bootstrap.min.css">
+    <script src="./static/js/jquery-3.6.0.min.js"></script>
+    <script src="./bootstrap/js/bootstrap.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="jumbotron">
+            <h2>
+                <!-- <img alt="图1" src="{{ url_for('static', filename='images/avatar.png') }}" class="img-circle"> -->
+                {{ user.name }}'s Application
+            </h2>
+        </div>
+    </div>
+    <hr>
+    {# 使用 length 过滤器获取 movies 变量(list)的长度 #}
+    <p>{{ movies|length }} 条记录：</p>
+    <ul class="nav nav-pills nav-stacked">
+        {% for movie in movies %} {# 迭代 movies 变量 #}
+        <li class="avtive">{{ movie.title }} - {{ movie.year }}</li> {# 等同于 movie['title'] #}
+        {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
+    </ul>
+    <img alt="Walking Totoro" class="totoro" src="{{ url_for('static', filename='images/totoro.gif') }}">
+    <footer>
+        <small>&copy; 2022 <a href="https://github.com/Rhylan2333">My Github</a></small>
+    </footer>
+</body>
+
+</html>
