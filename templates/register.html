@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h3>请注册</h3>
+<form method="post">
+    您的“称呼”<br>
+    <input type="text" name="name_user" autocomplete="off" required><br>
+    用户名（这将用于登录）<br>
+    <input type="text" name="username" autocomplete="off" required><br>
+    密码<br>
+    <!-- 密码输入框的 type 属性使用 password，会将输入值显示为圆点 -->
+    <input type="password" name="password" autocomplete="off" required><br>
+    <input class="btn" type="submit" name="submit" value="注册">
+</form>
+{% endblock %}

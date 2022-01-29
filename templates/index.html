@@ -3,9 +3,18 @@
 {% block content %}
 <div class="container p-0 my-2 border">
     <h2>
+        {% if current_user.is_authenticated %}
         按提示输入即可求算、提交
+        {% else %}
+        您未登录，请先登录或注册。
+        {% endif %}
     </h2>
     <div align="center">
+        <!-- 在模板中可以直接使用 current_user 变量。以创建新条目表单为例，我们在表单外部添加一个 if 判断：
+            在模板渲染时，会先判断当前用户的登录状态（current_user.is_authenticated）。
+                如果用户没有登录（current_user.is_authenticated 返回 False），
+                就不会渲染如下代码块，即表单 <form method="POST" name="form">...</form> 部分的 HTML 代码 -->
+        {% if current_user.is_authenticated %}
         <form method="POST" name="form">
             <!-- 指定提交方法为 POST -->
             第一代棉铃虫数量(头/百株)
@@ -14,11 +23,14 @@
             第二代棉铃虫数量(头/百株)
             <input type="text" name="x2" placeholder="输入 X2（数值）" autocomplete="off" required><!-- 文本输入框 -->
             <br>
+            <input type="submit" name="submit" value="计算并提交" class="btn" /><br><!-- 提交按钮 -->
             产量损失率(%)
             <input type="text" name="result" placeholder="得出 Y（数值）" readonly="readonly" value="{{ RESULT }}" />
             <br>
-            <input type="submit" name="submit" value="计算并提交" class="btn"/><!-- 提交按钮 -->
+            
         </form>
+        {% endif %}{# 模板内容保护 #}
+
     </div>
     <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->
     <div align="right">
@@ -30,8 +42,18 @@
     <div align="left">
         <ul class="ha-list">
             {% for row_ha in list_ha %} {# 迭代 list_ha 变量 #}
-            <li>X1：{{ row_ha.x1 }}&emsp;X2：{{ row_ha.x2 }}&emsp;Y：{{ row_ha.y }}&emsp;日期：{{ row_ha.date }}</li>
-            {# 等同于 row_ha['x1'] #}
+            <li>
+                X1：{{ row_ha.x1 }}&emsp;X2：{{ row_ha.x2 }}&emsp;Y：{{ row_ha.y }}&emsp;日期：{{ row_ha.date }}
+                {# 等同于 row_ha['x1'] #}
+                <span class="float-right">
+                    {% if current_user.is_authenticated %}
+                    <a class="btn" href="{{ url_for('edit', id_ha=row_ha.id_ha) }}">编辑</a>
+                    <form class="inline-form" method="post" action="{{ url_for('delete', id_ha=row_ha.id_ha) }}">
+                        <input class="btn" type="submit" name="delete" value="删除" onclick="return confirm('您确定吗？')">
+                    </form>
+                    {% endif %}{# 模板内容保护 #}
+                </span>
+            </li>
             {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
         </ul>
     </div>
