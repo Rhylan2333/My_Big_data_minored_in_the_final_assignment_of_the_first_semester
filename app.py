@@ -25,8 +25,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
 # 在扩展类实例化前加载配置
 db = SQLAlchemy(app)
-"""
+
 # 接下来创建数据库模型。
+"""
     模型类要声明继承 db.Model。
     每一个类属性（字段）要实例化 db.Column，传入的参数为字段的类型。
     在 db.Column() 中添加额外的选项（参数）可以对字段进行设置。比如，primary_key 设置当前字段是否为主键。除此之外，常用的选项还有 nullable（布尔值，是否允许为空值）、index（布尔值，是否设置索引）、unique（布尔值，是否允许重复值）、default（设置默认值）等。
@@ -88,6 +89,9 @@ def forge():
     db.create_all()
     # 全局的两个变量移动到这个函数内
     name_user = '蔡雨豪'
+    pwd_user = '123'
+    name_admin = 'Yuhao Cai'
+    pwd_admin = '123456'
     list_ha = [
         {
             'x1': '50',
@@ -120,10 +124,19 @@ def forge():
             'date': date(2022, 1, 28),
         },
     ]
+
     user = User_info(
-        name_user=name_user
+        name_user=name_user, pwd_user=pwd_user
     )  # 把这个 def 中的 name_user = '蔡雨豪' 左传给 User_info 模型中的 name_user
+    print(user)
     db.session.add(user)
+
+    admin = Admin_info(
+        name_admin=name_admin, pwd_admin=pwd_admin
+    )  # 把这个 def 中的 name_admin = 'Yuhao Cai' 左传给 Admin_info 模型中的 name_admin
+    print(admin)
+    db.session.add(admin)
+
     for row_ha in list_ha:
         print(row_ha)
         ha = Ha_info(
@@ -132,6 +145,7 @@ def forge():
             y=row_ha['y'],
             date=row_ha['date']
         )  # 创建一个 row_ha 记录，等号左边的“x1、x2、y”与ha_info表中的“x1、x2、y”要匹配/相等
+        print(ha)
         db.session.add(ha)
 
     db.session.commit()
@@ -139,52 +153,73 @@ def forge():
     click.echo('虚拟数据已写入数据库 my_ha_data。')
 
 
-@app.route('/', methods=['GET', 'POST'])
-# def index():
-#     if request.method == "POST":
-#         X1 = eval(request.form.get('left')) / 50
-#         X2 = eval(request.form.get('right')) / 300
-#         Y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(X1, X2)
-#         return render_template('index.html', RESULT=str(Y0))
-#     return render_template('index.html')
-# 返回渲染好的模板作为响应
-def show_list_ha():
-    # 定义虚拟数据
-    name_user = '蔡雨豪'
-    list_ha = [
-        {
-            'x1': '50',
-            'x2': '300',
-            'y': '25.624243',
-            'date': '2022-01-29',
-        },
-        {
-            'x1': '10',
-            'x2': '60',
-            'y': '15.435247',
-            'date': '2022-01-25',
-        },
-        {
-            'x1': '20',
-            'x2': '120',
-            'y': '17.6739028',
-            'date': '2022-01-26',
-        },
-        {
-            'x1': '30',
-            'x2': '180',
-            'y': '20.1182874',
-            'date': '2022-01-27',
-        },
-        {
-            'x1': '40',
-            'x2': '250',
-            'y': '22.768400800000002',
-            'date': '2022-01-28',
-        },
-    ]
-    return render_template('index.html', name_user=name_user, list_ha=list_ha)
+@app.route('/')
+def index():
+    # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
+    list_ha = Ha_info.query.all()  # 读取所有棉铃虫信息记录
+    return render_template('index.html', list_ha=list_ha)
 
+
+@app.route('/calculate', methods=['GET', 'POST'])
+def calculate():
+    if request.method == "POST":
+        X1 = eval(request.form.get('left')) / 50
+        X2 = eval(request.form.get('right')) / 300
+        Y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(X1, X2)
+        return render_template('index.html', RESULT=str(Y0))
+    return render_template('index.html')  # 返回渲染好的模板作为响应
+
+
+
+# def show_list_ha():
+#     # 定义虚拟数据
+#     name_user = '蔡雨豪'
+#     list_ha = [
+#         {
+#             'x1': '50',
+#             'x2': '300',
+#             'y': '25.624243',
+#             'date': '2022-01-29',
+#         },
+#         {
+#             'x1': '10',
+#             'x2': '60',
+#             'y': '15.435247',
+#             'date': '2022-01-25',
+#         },
+#         {
+#             'x1': '20',
+#             'x2': '120',
+#             'y': '17.6739028',
+#             'date': '2022-01-26',
+#         },
+#         {
+#             'x1': '30',
+#             'x2': '180',
+#             'y': '20.1182874',
+#             'date': '2022-01-27',
+#         },
+#         {
+#             'x1': '40',
+#             'x2': '250',
+#             'y': '22.768400800000002',
+#             'date': '2022-01-28',
+#         },
+#     ]
+#     return render_template('index.html', name_user=name_user, list_ha=list_ha)
+
+# 404 错误处理函数
+@app.errorhandler(404)  # 传入要处理的错误代码
+def page_not_found(e):  # 接受异常对象作为参数
+    # user_info = User_info.query.first()  # 被删掉是因为有了模板上下文处理函数 inject_user()
+    return render_template('404.html'), 404  # 返回模板和状态码
+
+# 模板上下文处理函数
+@app.context_processor
+def inject_user():  # 函数名可以随意修改
+    """现在我们可以删除 404 错误处理函数 errorhandler(404) 和主页视图函数中的 user_info 变量定义，并删除在 render_template() 函数里传入的关键字参数："""
+    user_info = User_info.query.first()
+    return dict(user_info=user_info)  # 需要返回字典，等同于 return {'user': user}
 
 if __name__ == "__main__":
     app.run(debug=True)

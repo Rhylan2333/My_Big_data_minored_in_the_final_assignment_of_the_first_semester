@@ -77,16 +77,6 @@ nav li a:hover {
     float: right;
 }
 
-.imdb {
-    font-size: 12px;
-    font-weight: bold;
-    color: black;
-    text-decoration: none;
-    background: #F5C518;
-    border-radius: 5px;
-    padding: 3px 5px;
-}
-
 /* 两个输入框和提交按钮相关的 CSS 定义如下： */
 /* 覆盖某些浏览器对 input 元素定义的字体 */
 input[type=submit] {

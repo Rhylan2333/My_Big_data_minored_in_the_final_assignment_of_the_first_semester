@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>{{ user_info.name_user }}，欢迎使用</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 引入我的 CSS 文件-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+    <!-- 新 Bootstrap5 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <!-- 最新的 Bootstrap5 核心 JavaScript 文件。bootstrap.bundle.js （未压缩版）或 bootstrap.bundle.min.js（压缩版） 包含了捆绑的插件如 popper.min.js 及其他依赖脚本 -->
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <link rel="icon" href="{{ url_for('static', filename='myicon.ico') }}">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-sm bg-success navbar-dark">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="{{ url_for('index') }}">首页</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">注册</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="#">登录</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link disabled" href="#">登出</a>
+            </li>
+        </ul>
+    </nav>
+    <div class="mt-4 p-5 bg-secondary text-white rounded">
+        <h1>根据 第一、二代棉铃虫数量 计算 产量损失率 的 web “小”程序</h1>
+    </div>
+    <hr>
+    <h2 align="center">
+        <img alt="cotton" src="{{ url_for('static', filename='images/cotton.jpg') }}" height="40px">
+        <abbr title="这是您注册的“称呼”">{{ user_info.name_user }}</abbr> 您好
+    </h2>
+    <div class="container p-0 my-2 border">
+        <h2>
+            按提示输入即可求算、提交
+        </h2>
+        <div align="center">
+            <form method="POST" name="form">
+                <!-- 指定提交方法为 POST -->
+                <label for="left">第一代棉铃虫数量(头/百株)</label>
+                <input type="text" name="left" placeholder="输入 X1" /><!-- 文本输入框 -->
+                <br>
+                <label for="right">第二代棉铃虫数量(头/百株)</label>
+                <input type="text" name="right" placeholder="输入 X2" /><!-- 文本输入框 -->
+                <br>
+                <label for="right">产量损失率(%)</label>
+                <input type="text" name="result" placeholder="得出 Y" readonly="readonly" value="{{ RESULT }}" />
+                <br>
+                <input type="submit" name="submit" value="计算并提交" /><!-- 提交按钮 -->
+            </form>
+        </div>
+        <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->
+        <div align="right">
+            {# 使用 length 过滤器获取 list_ha 变量的长度 #}
+            {# {{ 变量|过滤器 }} #}
+            <!--有花括号不能用这种注释-->
+            已有 {{ list_ha | length }} 条记录
+        </div>
+        <div align="left">
+            <ul class="ha-list">
+                {% for row_ha in list_ha %} {# 迭代 list_ha 变量 #}
+                <li>X1：{{ row_ha.x1 }}&emsp;X2：{{ row_ha.x2 }}&emsp;Y：{{ row_ha.y }}&emsp;日期：{{ row_ha.date }}</li>
+                {# 等同于 row_ha['x1'] #}
+                {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
+            </ul>
+        </div>
+
+        <hr>
+        <h2>第一、二代棉铃虫复合为害 与 产量损失 的 回归模型</h2>
+        <p>
+            Y = 13.40232 + 4.65075 * X1 + 4.999563 * X2 + 0.624735 * X1**2 + 3.876875 * X2**2 - 1.93 * X1 * X2<br>
+            Y：产量损失率(%)。<br>
+            X1：一代棉铃虫数量的水平，50 头/100株 规定为“1”。<br>
+            X2：二代棉铃虫数量的水平，300 头/100株 规定为“1”。<br>
+        </p>
+        <hr>
+        <h2>防治指标公式：Y = E × C ×100%／(H×P×F×R)</h2>
+        <p>
+            Y：允许产量损失率(%)。<br>
+            <input type="text" name="Y" placeholder="自定义 Y" />
+            <input type="submit" name="submit_Y" value="提交" /><br>
+            E：生态学系数，根据该地区目前生产水平、经济水平和农民接受能力，将 E 定为 2 为宜，即允许棉铃虫造成的损失不超过防治费用的 2 倍。<br>
+            <input type="text" name="E" placeholder="自定义 E" />
+            <input type="submit" name="submit_E" value="提交" /><br>
+            C：防治一次各种费用之和（农机费 5.00元/亩，农药费 4.50元/亩，合计为9.50元／亩）。<br>
+            <input type="text" name="C" placeholder="自定义 C" />
+            <input type="submit" name="submit_C" value="提交" /><br>
+            H：大田平均产量量（2003~2005年喀什棉区平均为 90 kg/亩）。<br>
+            <input type="text" name="H" placeholder="自定义 H" />
+            <input type="submit" name="submit_H" value="提交" /><br>
+            P：农产品单价（2003~2005年，皮棉平均价为 9.80 元/kg）。<br>
+            <input type="text" name="P" placeholder="自定义 P" />
+            <input type="submit" name="submit_P" value="提交" /><br>
+            F：害虫为害造成的最大损失率（据估计棉铃虫第一、二代分别为20％、50％）。<br>
+            <input type="text" name="F" placeholder="自定义 F" />
+            <input type="submit" name="submit_F" value="提交" /><br>
+            R：防治一次的防治效果（一般为80％）。<br>
+            <input type="text" name="R" placeholder="自定义 R" />
+            <input type="submit" name="submit_R" value="提交" /><br>
+        </p>
+
+    </div>
+    <hr>
+    <footer class="blockquote-footer" align="left">
+        参考: <br>
+        姚举,李号宾,王伟,等. 喀什棉区第一、二代棉铃虫对棉花的复合危害和防治指标研究[J].新疆农业科学,2008,45(1):105-108.<br>
+        &copy;<a href="https://github.com/Rhylan2333">欢迎来我的 Github 逛逛</a><br>
+        <a href="https://www.runoob.com/bootstrap5/bootstrap5-tutorial.html">Bootstrap5 教程 | 菜鸟教程</a>
+    </footer>
+</body>
+
+</html>
