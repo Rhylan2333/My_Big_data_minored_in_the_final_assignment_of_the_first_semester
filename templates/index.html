@@ -30,11 +30,12 @@
         </ul>
     </nav>
     <div class="mt-4 p-5 bg-secondary text-white rounded">
-        <h1>根据 第一、二代棉铃虫数量 计算 产量损失率 的 web “小”程序 building…</h1>
+        <h1>根据 第一、二代棉铃虫数量 计算 产量损失率 的 web “小”程序</h1>
     </div>
     <hr>
     <div class="container p-0 my-2 border">
-        <div align="center" style="margin-top:30px">
+        <h2>{{ name_user }}您好，按提示输入即可求算</h2>
+        <div align="center">
             <form method="POST" name="form">
                 <!-- 指定提交方法为 POST -->
                 <label for="left">第一代棉铃虫数量(头/百株)</label>
@@ -46,9 +47,23 @@
                 <label for="right">产量损失率(%)</label>
                 <input type="text" name="result" placeholder="得出 Y" readonly="readonly" value="{{ RESULT }}" />
                 <br>
-                <input type="submit" name="submit" value="计算" /><!-- 提交按钮 -->
+                <input type="submit" name="submit" value="计算并提交" /><!-- 提交按钮 -->
             </form>
         </div>
+        <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->
+        <div align="right">
+            {# 使用 length 过滤器获取 list_ha 变量的长度 #}
+            已有 {{ list_ha | length }} 条记录
+        </div>
+        <div align="left">
+            <ul>
+                {% for row_ha in list_ha %} {# 迭代 list_ha 变量 #}
+                <li>X1：{{ row_ha.x1 }}&emsp;X2：{{ row_ha.x2 }}&emsp;Y：{{ row_ha.y }}&emsp;日期{{ row_ha.date }}</li>
+                {# 等同于 row_ha['x1'] #}
+                {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
+            </ul>
+        </div>
+
         <hr>
         <h2>第一、二代棉铃虫复合为害 与 产量损失 的 回归模型</h2>
         <p>
@@ -84,7 +99,8 @@
         </p>
         <hr>
         <footer class="blockquote-footer">
-            参考文献: 姚举,李号宾,王伟,等. 喀什棉区第一、二代棉铃虫对棉花的复合危害和防治指标研究[J].新疆农业科学,2008,45(1):105-108.<br>
+            参考: <br>
+            姚举,李号宾,王伟,等. 喀什棉区第一、二代棉铃虫对棉花的复合危害和防治指标研究[J].新疆农业科学,2008,45(1):105-108.<br>
             &copy;<a href="https://github.com/Rhylan2333">欢迎来我的 Github 逛逛</a><br>
             <a href="https://www.runoob.com/bootstrap5/bootstrap5-tutorial.html">Bootstrap5 教程 | 菜鸟教程</a>
         </footer>
