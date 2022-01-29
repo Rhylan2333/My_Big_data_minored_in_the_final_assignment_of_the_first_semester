@@ -154,9 +154,12 @@ def forge():
     click.echo('虚拟数据已写入数据库 my_ha_data。')
 
 
+y0 = ''  # 专门为显示 产量损失率(%) 而设计的。发现要在 if 的上一层才能成功渲染。
+
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    y0 = ''
+    global y0
     if request.method == 'POST':  # 判断是否是 POST 请求
         # 获取表单数据
         x1 = request.form.get('x1')  # 传入表单对应输入字段的 name 值
