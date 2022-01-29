@@ -1,11 +1,12 @@
 import os
 import sys
-from datetime import date, datetime
+from datetime import date
 from email.policy import default
 from enum import unique
 
 import click
-from flask import Flask, escape, render_template, request, url_for
+from flask import (Flask, escape, flash, redirect, render_template, request,
+                   url_for)
 from flask_sqlalchemy import \
     SQLAlchemy  # 导入扩展类。Flask-SQLAlchemy 版本 2.4.0 Apr 25, 2019 可行
 
@@ -153,8 +154,32 @@ def forge():
     click.echo('虚拟数据已写入数据库 my_ha_data。')
 
 
-@app.route('/')
+@app.route('/', methods=['GET', 'POST'])
 def index():
+    y0 = ''
+    if request.method == 'POST':  # 判断是否是 POST 请求
+        # 获取表单数据
+        x1 = request.form.get('x1')  # 传入表单对应输入字段的 name 值
+        x2 = request.form.get('x2')
+        # 验证数据
+        if not x1 or not x2:
+            """
+             or type(x1) != type(50.0) or type(x1) != type(50) or type(x2) != type(300.0) or type(x2) != type(300):
+            """
+            flash('Invalid input.')  # 显示错误提示
+            return redirect(url_for('index'))  # 重定向回主页
+        else:
+            y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(
+                eval(x1) / 50,
+                eval(x2) / 300)
+        # 保存表单数据到数据库
+        row_ha = Ha_info(x1=x1, x2=x2, y=y0, date=date.today())  # 创建记录
+        # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
+        db.session.add(row_ha)  # 添加到数据库会话
+        db.session.commit()  # 提交数据库会话
+        flash('写入成功！')  # 显示成功创建的提示
+        return redirect(url_for('index'))  # 重定向回主页
+        # return render_template('index.html', RESULT=str(y0))# 本意是重定向回主页“return redirect(url_for('index'))”
     # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
     list_ha = Ha_info.query.all()  # 读取所有棉铃虫信息记录
     return render_template('index.html', list_ha=list_ha)
@@ -163,12 +188,11 @@ def index():
 @app.route('/calculate', methods=['GET', 'POST'])
 def calculate():
     if request.method == "POST":
-        X1 = eval(request.form.get('left')) / 50
-        X2 = eval(request.form.get('right')) / 300
+        X1 = eval(request.form.get('x1')) / 50
+        X2 = eval(request.form.get('x2')) / 300
         Y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(X1, X2)
         return render_template('index.html', RESULT=str(Y0))
     return render_template('index.html')  # 返回渲染好的模板作为响应
-
 
 
 # def show_list_ha():
@@ -208,11 +232,13 @@ def calculate():
 #     ]
 #     return render_template('index.html', name_user=name_user, list_ha=list_ha)
 
+
 # 404 错误处理函数
 @app.errorhandler(404)  # 传入要处理的错误代码
 def page_not_found(e):  # 接受异常对象作为参数
     # user_info = User_info.query.first()  # 被删掉是因为有了模板上下文处理函数 inject_user()
     return render_template('404.html'), 404  # 返回模板和状态码
+
 
 # 模板上下文处理函数
 @app.context_processor
@@ -220,6 +246,11 @@ def inject_user():  # 函数名可以随意修改
     """现在我们可以删除 404 错误处理函数 errorhandler(404) 和主页视图函数中的 user_info 变量定义，并删除在 render_template() 函数里传入的关键字参数："""
     user_info = User_info.query.first()
     return dict(user_info=user_info)  # 需要返回字典，等同于 return {'user': user}
+
+
+# flash() 函数在内部会把消息存储到 Flask 提供的 session 对象里。
+# session 用来在请求间存储数据，它会把数据签名后存储到浏览器的 Cookie 中，所以我们需要设置签名所需的密钥：
+app.config['SECRET_KEY'] = 'dev'  # 等同于 app.secret_key = 'dev'
 
 if __name__ == "__main__":
     app.run(debug=True)

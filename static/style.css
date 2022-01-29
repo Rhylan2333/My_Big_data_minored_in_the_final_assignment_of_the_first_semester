@@ -87,8 +87,16 @@ input[type=text] {
     border: 1px solid #ddd;
 }
 
-input[name=year] {
-    width: 50px;
+input[name=x1] {
+    width: 55px;
+}
+
+input[name=x2] {
+    width: 55px;
+}
+
+input[name=result] {
+    width: 66px;
 }
 
 .btn {
@@ -96,17 +104,17 @@ input[name=year] {
     padding: 3px 5px;
     text-decoration: none;
     cursor: pointer;
-    background-color: white;
+    background-color: rgb(177,113,75);
     color: black;
-    border: 1px solid #555555;
+    border: 1px solid rgb(85, 66, 57);
     border-radius: 5px;
 }
 
 .btn:hover {
     text-decoration: none;
-    background-color: black;
-    color: white;
-    border: 1px solid black;
+    background-color: rgb(177,113,75);
+    color: rgb(196, 187, 147);
+    border: 1px solid rgb(85, 66, 57);
 }
 
 /* alert 类为提示消息增加样式： */

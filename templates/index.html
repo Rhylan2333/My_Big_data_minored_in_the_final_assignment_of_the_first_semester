@@ -8,16 +8,16 @@
     <div align="center">
         <form method="POST" name="form">
             <!-- 指定提交方法为 POST -->
-            <label for="left">第一代棉铃虫数量(头/百株)</label>
-            <input type="text" name="left" placeholder="输入 X1" /><!-- 文本输入框 -->
+            第一代棉铃虫数量(头/百株)
+            <input type="text" name="x1" placeholder="输入 X1（数值）" autocomplete="off" required><!-- 文本输入框 -->
             <br>
-            <label for="right">第二代棉铃虫数量(头/百株)</label>
-            <input type="text" name="right" placeholder="输入 X2" /><!-- 文本输入框 -->
+            第二代棉铃虫数量(头/百株)
+            <input type="text" name="x2" placeholder="输入 X2（数值）" autocomplete="off" required><!-- 文本输入框 -->
             <br>
-            <label for="right">产量损失率(%)</label>
-            <input type="text" name="result" placeholder="得出 Y" readonly="readonly" value="{{ RESULT }}" />
+            产量损失率(%)
+            <input type="text" name="result" placeholder="得出 Y（数值）" readonly="readonly" value="{{ RESULT }}" />
             <br>
-                <input type="submit" name="submit" value="计算并提交" /><!-- 提交按钮 -->
+            <input type="submit" name="submit" value="计算并提交" class="btn"/><!-- 提交按钮 -->
         </form>
     </div>
     <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->

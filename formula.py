@@ -1,7 +1,7 @@
-def cal_the_complex_of_1_and_2_generation_of_Ha_0(X1=0, X2=0):
+def cal_the_complex_of_1_and_2_generation_of_Ha_0(x1=0, x2=0):
     """第一、二代棉铃虫复合为害与产量损失的回归模型，原始公式"""
-    Y0 = 13.40232 + 4.65075 * X1 + 4.999563 * X2 + 0.624735 * X1**2 + 3.876875 * X2**2 - 1.93 * X1 * X2
-    return Y0
+    y0 = 13.40232 + 4.65075 * x1 + 4.999563 * x2 + 0.624735 * x1**2 + 3.876875 * x2**2 - 1.93 * x1 * x2
+    return y0
 
 
 def cal_the_complex_of_1_and_2_generation_of_Ha(X1, X2):
