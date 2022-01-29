@@ -39,7 +39,7 @@
     <div class="container p-0 my-2 border">
         <h2>
             <img alt="cotton" src="{{ url_for('static', filename='images/cotton.jpg') }}" height="36px">
-            {{ name_user }} 您好，按提示输入即可求算
+            {{ user_info.name_user }} 您好，按提示输入即可求算
         </h2>
         <div align="center">
             <form method="POST" name="form">
@@ -66,7 +66,7 @@
         <div align="left">
             <ul class="ha-list">
                 {% for row_ha in list_ha %} {# 迭代 list_ha 变量 #}
-                <li>X1：{{ row_ha.x1 }}&emsp;X2：{{ row_ha.x2 }}&emsp;Y：{{ row_ha.y }}&emsp;日期{{ row_ha.date }}</li>
+                <li>X1：{{ row_ha.x1 }}&emsp;X2：{{ row_ha.x2 }}&emsp;Y：{{ row_ha.y }}&emsp;日期：{{ row_ha.date }}</li>
                 {# 等同于 row_ha['x1'] #}
                 {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
             </ul>
