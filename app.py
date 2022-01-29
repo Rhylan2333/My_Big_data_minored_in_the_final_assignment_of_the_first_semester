@@ -178,11 +178,11 @@ def index():
         db.session.add(row_ha)  # 添加到数据库会话
         db.session.commit()  # 提交数据库会话
         flash('写入成功！')  # 显示成功创建的提示
-        return redirect(url_for('index'))  # 重定向回主页
+        return redirect(url_for('index'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
         # return render_template('index.html', RESULT=str(y0))# 本意是重定向回主页“return redirect(url_for('index'))”
     # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
     list_ha = Ha_info.query.all()  # 读取所有棉铃虫信息记录
-    return render_template('index.html', list_ha=list_ha)
+    return render_template('index.html', list_ha=list_ha, RESULT=str(y0))
 
 
 @app.route('/calculate', methods=['GET', 'POST'])
