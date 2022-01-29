@@ -5,11 +5,14 @@
     <title>求求了……</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- 引入我的 CSS 文件-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
     <!-- 新 Bootstrap5 核心 CSS 文件 -->
     <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
     <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
     <!-- 最新的 Bootstrap5 核心 JavaScript 文件。bootstrap.bundle.js （未压缩版）或 bootstrap.bundle.min.js（压缩版） 包含了捆绑的插件如 popper.min.js 及其他依赖脚本 -->
     <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    <link rel="icon" href="{{ url_for('static', filename='myicon.ico') }}">
 </head>
 
 <body>
@@ -34,7 +37,10 @@
     </div>
     <hr>
     <div class="container p-0 my-2 border">
-        <h2>{{ name_user }}您好，按提示输入即可求算</h2>
+        <h2>
+            <img alt="cotton" src="{{ url_for('static', filename='images/cotton.jpg') }}" height="36px">
+            {{ name_user }} 您好，按提示输入即可求算
+        </h2>
         <div align="center">
             <form method="POST" name="form">
                 <!-- 指定提交方法为 POST -->
@@ -53,10 +59,12 @@
         <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->
         <div align="right">
             {# 使用 length 过滤器获取 list_ha 变量的长度 #}
+            {# {{ 变量|过滤器 }} #}
+            <!--有花括号不能用这种注释-->
             已有 {{ list_ha | length }} 条记录
         </div>
         <div align="left">
-            <ul>
+            <ul class="ha-list">
                 {% for row_ha in list_ha %} {# 迭代 list_ha 变量 #}
                 <li>X1：{{ row_ha.x1 }}&emsp;X2：{{ row_ha.x2 }}&emsp;Y：{{ row_ha.y }}&emsp;日期{{ row_ha.date }}</li>
                 {# 等同于 row_ha['x1'] #}
