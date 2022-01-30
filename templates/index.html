@@ -52,6 +52,7 @@
                         <th>Y</th>
                         <th>地区</th>
                         <th>日期</th>
+                        <th>记录人称呼</th>
                         <th>操作按钮</th>
                     </tr>
                 <tbody>
@@ -74,6 +75,9 @@
                         </td>
                         <td>
                             <code>{{ row_ha.date }}{# 等同于 row_ha['x1'] #}</code>&emsp;
+                        </td>
+                        <td>
+                            <code>{{ row_ha.id_user }}</code>&emsp;
                         </td>
                         <td class="table-info">
                             <!-- <span class="float-right"> -->
@@ -109,7 +113,7 @@
     <hr>
     <h2>
         <mark>（建设中……）防治指标公式：</mark><br>
-        <code>Y = E × C ×100%／(H×P×F×R)</code>
+        <code>Y = E×C×100%／(H×P×F×R)</code>
     </h2>
     <p>
         Y：允许产量损失率(%)。<br>
