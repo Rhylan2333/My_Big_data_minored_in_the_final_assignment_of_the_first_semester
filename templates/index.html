@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container p-0 my-2 border">
+<div class="container p-3 my-2 border">
     <h2>
-        {% if current_user.is_authenticated %}
-        按提示输入即可求算、提交
-        {% else %}
-        您未登录，请先登录或注册。
-        {% endif %}
+        <mark>
+            {% if current_user.is_authenticated %}
+            按提示输入即可求算、提交：
+            {% else %}
+            您未登录，请先👆登录👆或👆注册👆。
+            {% endif %}
+        </mark>
     </h2>
     <div align="center">
         <!-- 在模板中可以直接使用 current_user 变量。以创建新条目表单为例，我们在表单外部添加一个 if 判断：
@@ -34,10 +36,10 @@
     </div>
     <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->
     <div align="right">
-        {# 使用 length 过滤器获取 list_ha 变量的长度 #}
+        {# 使用 length 过滤器获取 list_ha、list_ha_limit 变量的长度 #}
         {# {{ 变量|过滤器 }} #}
         <!--有花括号不能用这种注释-->
-        已有 {{ list_ha | length }} 条记录
+        已有 {{ list_ha | length }} 条记录，显示 {{ list_ha_limit | length }} 条。
     </div>
     <div class="container mt-3">
         <div class="table-responsive-lg">
@@ -93,36 +95,43 @@
     </div>
 
     <hr>
-    <h2>第一、二代棉铃虫复合为害 与 产量损失 的 回归模型</h2>
+    <h2>
+        <mark>第一、二代棉铃虫复合为害 与 产量损失 的 回归模型：</mark><br>
+    </h2>
+    <code>Y = 13.40232 + 4.65075 * X1 + 4.999563 * X2 + 0.624735 * X1**2 + 3.876875 * X2**2 - 1.93 * X1 *
+        X2</code><br>
     <p>
-        Y = 13.40232 + 4.65075 * X1 + 4.999563 * X2 + 0.624735 * X1**2 + 3.876875 * X2**2 - 1.93 * X1 * X2<br>
-        Y：产量损失率(%)。<br>
-        X1：一代棉铃虫数量的水平，50 头/100株 规定为“1”。<br>
-        X2：二代棉铃虫数量的水平，300 头/100株 规定为“1”。<br>
+
+        <code>Y</code>：产量损失率(%)。<br>
+        <code>X1</code>：一代棉铃虫数量的水平，50 头/100株 规定为“1”。<br>
+        <code>X2</code>：二代棉铃虫数量的水平，300 头/100株 规定为“1”。<br>
     </p>
     <hr>
-    <h2>防治指标公式：Y = E × C ×100%／(H×P×F×R)</h2>
+    <h2>
+        <mark>（建设中……）防治指标公式：</mark><br>
+        <code>Y = E × C ×100%／(H×P×F×R)</code>
+    </h2>
     <p>
         Y：允许产量损失率(%)。<br>
-        <input type="text" name="Y" placeholder="自定义 Y" />
-        <input type="submit" name="submit_Y" value="提交" /><br>
+        <input type="text" name="Y" placeholder="根据上述公式求得 Y" />
+        <input type="submit" name="submit_Y" value="展示/求算 Y" /><br>
         E：生态学系数，根据该地区目前生产水平、经济水平和农民接受能力，将 E 定为 2 为宜，即允许棉铃虫造成的损失不超过防治费用的 2 倍。<br>
-        <input type="text" name="E" placeholder="自定义 E" />
+        <input type="text" name="E" placeholder="自定义 E （默认 E=2）" />
         <input type="submit" name="submit_E" value="提交" /><br>
         C：防治一次各种费用之和（农机费 5.00元/亩，农药费 4.50元/亩，合计为9.50元／亩）。<br>
-        <input type="text" name="C" placeholder="自定义 C" />
+        <input type="text" name="C" placeholder="自定义 C（默认 C=9.50）" />
         <input type="submit" name="submit_C" value="提交" /><br>
         H：大田平均产量量（2003~2005年喀什棉区平均为 90 kg/亩）。<br>
-        <input type="text" name="H" placeholder="自定义 H" />
+        <input type="text" name="H" placeholder="自定义 H（默认 H=90）" />
         <input type="submit" name="submit_H" value="提交" /><br>
         P：农产品单价（2003~2005年，皮棉平均价为 9.80 元/kg）。<br>
-        <input type="text" name="P" placeholder="自定义 P" />
+        <input type="text" name="P" placeholder="自定义 P（默认 P=9.80）" />
         <input type="submit" name="submit_P" value="提交" /><br>
         F：害虫为害造成的最大损失率（据估计棉铃虫第一、二代分别为20％、50％）。<br>
-        <input type="text" name="F" placeholder="自定义 F" />
+        <input type="text" name="F" placeholder="自定义 F（默认 F=0.7）" />
         <input type="submit" name="submit_F" value="提交" /><br>
         R：防治一次的防治效果（一般为80％）。<br>
-        <input type="text" name="R" placeholder="自定义 R" />
+        <input type="text" name="R" placeholder="自定义 R（默认 R=0.8）" />
         <input type="submit" name="submit_R" value="提交" /><br>
     </p>
 

@@ -63,11 +63,17 @@ class User_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生�
     """
     id_user = db.Column(db.Integer, primary_key=True)  # 主键，农户id
     name_user = db.Column(db.String(20), unique=True)  # 农户称呼
+    # ha= db.relationship('Ha_info', backref='ha_info')  # 这个功能未能实现
     username = db.Column(db.String(20))  # 农户的用户名
     password_hash = db.Column(db.String(128))  # 农户密码
     id_area = db.Column(db.Integer,
                         db.ForeignKey('area_info.id_area'))  # 外键，农户所属地区id
-
+    """
+    a = Area_info(id_area=1, name_area="新疆")
+    u = User_info(id_user=10, name_user="蔡雨豪", id_area=1)
+    a.name_user.append(u)
+    print(u.name_area)
+    """
     def set_password(self, password):  # 用来设置密码的方法，接受密码作为参数
         self.password_hash = generate_password_hash(password)  # 将生成的密码保持到对应字段
 
@@ -83,6 +89,8 @@ class User_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生�
 class Area_info(db.Model):  # 表名将会是 area_info （自动生成，小写处理）
     id_area = db.Column(db.Integer, primary_key=True)  # 主键，地区id
     name_area = db.Column(db.String(20), unique=True)  # 地区名
+    # ha= db.relationship('Ha_info', backref='ha_info')
+    # user= db.relationship('User_info', backref='user_info')
     id_admin = db.Column(db.Integer,
                          db.ForeignKey('admin_info.id_admin'))  # 外键，管理员id
 
@@ -91,6 +99,7 @@ class Area_info(db.Model):  # 表名将会是 area_info （自动生成，小写
 class Admin_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生成，小写处理）
     id_admin = db.Column(db.Integer, primary_key=True)  # 主键，管理员id
     name_admin = db.Column(db.String(20), unique=True)  # 管理员称呼
+    # area= db.relationship('Area_info', backref='area_info')
     adminname = db.Column(db.String(20))  #管理员的用户名
     password_hash = db.Column(db.String(128))  # 农户密码
 
@@ -213,9 +222,13 @@ def index():
             flash('Invalid input.')  # 显示错误提示
             return redirect(url_for('index'))  # 重定向回主页
         else:
-            y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(
-                eval(x1) / 50,
-                eval(x2) / 300)
+            try:
+                y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(
+                    eval(x1) / 50,
+                    eval(x2) / 300)
+            except:
+                flash('请重新输入，不要输入非数字内容！')  # 显示错误提示
+                return redirect(url_for('index'))  # 重定向回主页
         # 保存表单数据到数据库
         row_ha = Ha_info(x1=x1, x2=x2, y=y0, date=date.today())  # 创建记录
         # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
@@ -225,8 +238,12 @@ def index():
         return redirect(url_for('index'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
         # return render_template('index.html', RESULT=str(y0))# 本意是重定向回主页“return redirect(url_for('index'))”
     # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
-    list_ha = Ha_info.query.all()  # 读取所有棉铃虫信息记录
-    return render_template('index.html', list_ha=list_ha, RESULT=str(y0))
+    list_ha = Ha_info.query.order_by(db.desc(
+        Ha_info.id_ha)).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+    list_ha_limit = Ha_info.query.order_by(db.desc(
+        Ha_info.id_ha)).limit(7).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+    """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
+    return render_template('index.html', list_ha=list_ha,list_ha_limit=list_ha_limit, RESULT=str(y0))
 
 
 # 编辑 Ha_info 条目
@@ -416,15 +433,20 @@ def login():
             flash('无效的输入。')
             return redirect(url_for('login'))
 
-        row_user = User_info.query.first()
+        row_user = User_info.query.order_by(db.desc(
+            User_info.id_user)).filter_by(username=username).first()
         # 验证用户名和密码是否一致
-        if username == row_user.username and row_user.validate_password(
-                password):
-            login_user(row_user)  # 登入用户。注意这里要选用特定的 column
-            flash('登录成功')
-            return redirect(url_for('index'))  # 重定向到主页
+        if row_user:
+            """当用户名未写入 User_info，row_user 会查询不到，变成 NoneType，返回 False。这里用 if 来防止报错。 """
+            if username == row_user.username and row_user.validate_password(
+                    password):
+                login_user(row_user)  # 登入用户。注意这里要选用特定的 column
+                flash('登录成功')
+                return redirect(url_for('index'))  # 重定向到主页
 
-        flash('用户名与密码不匹配。')  # 如果验证失败，显示错误消息
+            flash('您的用户名与密码不匹配。')  # 如果验证失败，显示错误消息
+            return redirect(url_for('login'))  # 重定向回登录页面
+        flash('您的用户名未注册')  # 如果验证失败，显示错误消息
         return redirect(url_for('login'))  # 重定向回登录页面
 
     return render_template('login.html')
@@ -436,32 +458,38 @@ def register():
     if request.method == 'POST':
         name_user = request.form['name_user']
         username = request.form['username']
-        password = request.form['password']
+        password_hash = request.form['password']
+        name_area = request.form['name_area']  # 这里会想办法用外键连接实现的
 
-        if not name_user or not username or not password:
+        if not name_user or not username or not password_hash:
             flash('无效的输入。')
             return redirect(url_for('register'))  # 重定向回注册页面
 
-        row_user = User_info.query.first()
-        # 验证用户名和密码是否一致
-        row_user.name_user = name_user
-        row_user.username = username
-        row_user.password = generate_password_hash(password)
+        # 验证是否被注册
+        if User_info.query.filter_by(username=username).first():
+            flash('用户名已注册，请更改用户名。')  # 如果验证失败，显示错误消息
+            return redirect(url_for('register'))
+        # 写入
+        row_user = User_info(
+            name_user=name_user,
+            username=username,
+            password_hash=generate_password_hash(password_hash))
+        db.session.add(row_user)  # 添加到数据库会话
+        db.session.commit()  # 提交数据库会话
         flash('注册成功。已跳转至登录页，请登录')  # 如果验证失败，显示错误消息
         return redirect(url_for('login'))
+
     return render_template('register.html')
 
 
 # # 管理员登录
 # login_manager.login_view = 'adminlogin'  # 为了让这个重定向操作正确执行，我们还需要把 login_manager.login_view 的值设为我们程序的登录视图端点（函数名），把这一行代码放到 login_manager 实例定义下面即可：
 
-
 # @login_manager.user_loader
 # def load_user(id_admin):  # 创建用户加载回调函数，接受用户 ID 作为参数
 #     """Flask-Login 提供了一个 current_user 变量，注册这个函数的目的是，当程序运行后，如果用户已登录， current_user 变量的值会是当前用户的用户模型类记录。"""
 #     user = Admin_info.query.get(int(id_admin))  # 用 ID 作为 User_info 模型的主键查询对应的用户
 #     return user  # 返回用户对象
-
 
 # @app.route('/adminlogin', methods=['GET', 'POST'])
 # def adminlogin():
