@@ -6,12 +6,14 @@
     <title> 欢迎使用我这个web应用，{{ user_info.name_user }}。</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <!-- 引入作者的 CSS 文件-->
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+
     <!-- 新 Bootstrap5 核心 CSS 文件 -->
     <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
     <!-- 最新的 Bootstrap5 核心 JavaScript 文件。bootstrap.bundle.js （未压缩版）或 bootstrap.bundle.min.js（压缩版） 包含了捆绑的插件如 popper.min.js 及其他依赖脚本 -->
     <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- 引入作者的 CSS 文件-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
     <!-- 引入图标文件 -->
     <link rel="icon" href="{{ url_for('static', filename='myicon.ico') }}">
     {% endblock %}
@@ -21,28 +23,30 @@
     <!-- 插入到页面标题上方 -->
     <nav class="navbar navbar-expand-sm bg-success navbar-dark">
         <ul class="navbar-nav">
-            <li class="nav-item active">
-                <a class="nav-link" href="{{ url_for('index') }}">首页</a>
-            </li>
-            {% if current_user.is_authenticated %}
-            <li>
-                <a href="{{ url_for('settings') }}">更改您的信息</a>
-            </li>
-            <li class="nav-item">
-                <a href="{{ url_for('logout') }}">登出</a><!-- class="nav-link disabled" 这个标签无法被点击-->
-            </li>
-            {% else %}
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('login') }}">用户登录</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('register') }}">注册</a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="#">管理员登录</a>
-            </li>
-            <li class="nav-item">
-            {% endif %}
+            <h1 class="display-6">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('index') }}">首页</a>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li>
+                    <a href="{{ url_for('settings') }}">更改您的信息</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('logout') }}">登出</a><!-- class="nav-link disabled" 这个标签无法被点击-->
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">用户登录</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('register') }}">注册</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">管理员登录(建设中)</a>
+                </li>
+                <li class="nav-item">
+                    {% endif %}
+            </h1>
         </ul>
     </nav>
     <div class="mt-4 p-5 bg-secondary text-white rounded">
@@ -51,7 +55,7 @@
     <hr>
     <h2 align="center">
         <img alt="cotton" src="{{ url_for('static', filename='images/cotton.jpg') }}" height="40px">
-        <abbr title="这是您注册的“称呼”">{{ user_info.name_user }}</abbr> 您好
+        <abbr title="这是您注册的或上一位登录用户的“称呼”">{{ user_info.name_user }}</abbr> 您好
     </h2>
     <!-- 插入到页面标题上方 -->
     {% for message in get_flashed_messages() %}

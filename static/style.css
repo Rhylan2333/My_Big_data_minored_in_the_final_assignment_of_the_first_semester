@@ -88,16 +88,16 @@ input[type=text] {
 }
 
 input[name=x1] {
-    width: 55px;
+    width: 60px;
 }
 
 input[name=x2] {
-    width: 55px;
+    width: 60px;
 }
 
-input[name=result] {
+/* input[name=result] {
     width: 66px;
-}
+} */
 
 .btn {
     font-size: 12px;
@@ -105,14 +105,14 @@ input[name=result] {
     text-decoration: none;
     cursor: pointer;
     background-color: rgb(177,113,75);
-    color: whitesmoke;
+    color: wheat;
     border: 1px solid rgb(85, 66, 57);
     border-radius: 5px;
 }
 
 .btn:hover {
     text-decoration: none;
-    background-color: rgb(177,113,75);
+    background-color: rgb(226, 194, 177);
     color: rgb(196, 187, 147);
     border: 1px solid rgb(85, 66, 57);
 }
