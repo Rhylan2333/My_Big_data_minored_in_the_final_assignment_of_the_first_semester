@@ -7,7 +7,8 @@
             {% if current_user.is_authenticated %}
             按提示输入即可求算、提交：
             {% else %}
-            您未登录，请先👆<a href="{{ url_for('login') }}">登录</a>👆或👆<a href="{{ url_for('register') }}">注册</a>👆，否则只能使用<B>“计算”</B>功能。
+            您未登录，请先👆<a href="{{ url_for('login') }}">登录</a>👆或👆<a
+                href="{{ url_for('register') }}">注册</a>👆，否则只能使用<B>“计算”</B>功能。
             {% endif %}
         </mark>
     </h2>
@@ -116,8 +117,6 @@
     </div>
     {% endif %}{# 模板内容保护 #}
     <hr>
-</div>
-<div>
     <h2>
         <mark>第一、二代棉铃虫复合为害 与 产量损失 的 回归模型：</mark><br>
     </h2>
@@ -128,7 +127,8 @@
         <code>X1</code>：一代棉铃虫数量的水平(头/百株)，50 头/100株 规定为“1”。<br>
         <code>X2</code>：二代棉铃虫数量的水平(头/百株)，300 头/100株 规定为“1”。<br>
     </p>
-    <hr>
+</div>
+<div class="container p-3 my-2 border">
     <h2>
         <mark>（建设中……）防治指标公式：</mark><br>
         <code>Y = E×C×100%／(H×P×F×R)</code>
