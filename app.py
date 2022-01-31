@@ -278,13 +278,15 @@ def forge():
 
 
 y0 = ''  # 专门为显示 产量损失率(%) 而设计的。发现要在 if 的上一层才能成功渲染。
-id_user = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area”这些用于写入 ha_info 表第 6、7 列的数据”这一功能
-id_area = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area”这些用于写入 ha_info 表第 6、7 列的数据”这一功能
+y00= ''  # 为了实现非登录用户的计算功能专门做的
+id_user = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
+id_area = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
+NAME_USER = ''  # 为了“用户登录后，自动获取其 name_user”，把 name_user 传给 base.html 的“NAME_USER”，实现“定制化您好”功能
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global y0
+    global y0, y00
     if request.method == 'POST':  # 判断是否是 POST 请求
         if not current_user.is_authenticated:  # 如果当前用户未认证
             """
@@ -292,8 +294,27 @@ def index():
             创建新条目的操作稍微有些不同，
             因为对应的 '/' 视图同时处理显示页面的 GET 请求和创建新条目的 POST 请求，
             我们仅需要禁止未登录用户创建新条目，
-            因此不能使用 login_required，而是在函数内部的 POST 请求处理代码前进行过滤："""
-            return redirect(url_for('index'))  # 重定向到主页
+            因此不能使用 login_required，而是在函数内部的 POST 请求处理代码前进行过滤：
+            """
+            x1 = request.form.get('x1')  # 传入表单对应输入字段的 name 值
+            x2 = request.form.get('x2')
+            # 验证数据
+            if not x1 or not x2:
+                """
+                or type(x1) != type(50.0) or type(x1) != type(50) or type(x2) != type(300.0) or type(x2) != type(300):
+                """
+                flash('Invalid input.')  # 显示错误提示
+                return redirect(url_for('index'))  # 重定向回主页
+            else:
+                try:
+                    y00 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(
+                        eval(x1) / 50,
+                        eval(x2) / 300)
+                    return redirect(url_for('index'))  # 重定向回主页
+                except:
+                    flash('请重新输入，不要输入非数字内容！')  # 显示错误提示
+                    return redirect(url_for('index'))  # 重定向回主页
+
         # 获取表单数据
         x1 = request.form.get('x1')  # 传入表单对应输入字段的 name 值
         x2 = request.form.get('x2')
@@ -334,15 +355,79 @@ def index():
     list_ha = Ha_info.query.order_by(db.desc(
         Ha_info.id_ha)).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
     list_ha_limit = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).limit(
-        7).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+        10).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
     return render_template('index.html',
                            Area_info=Area_info,
                            User_info=User_info,
                            list_ha=list_ha,
                            list_ha_limit=list_ha_limit,
-                           RESULT=str(y0)
-                           )
+                           RESULT=str(y0),
+                           RESULT_visitor=str(y00))
+
+# 对 ha_info 的全面的友好的展示
+@app.route('/ha_detail', methods=['GET', 'POST'])
+def ha_detail():
+    global y0
+    if request.method == 'POST':  # 判断是否是 POST 请求
+        if not current_user.is_authenticated:  # 如果当前用户未认证
+            """
+            is_authenticated 的说明 见 Class User_info...
+            创建新条目的操作稍微有些不同，
+            因为对应的 '/' 视图同时处理显示页面的 GET 请求和创建新条目的 POST 请求，
+            我们仅需要禁止未登录用户创建新条目，
+            因此不能使用 login_required，而是在函数内部的 POST 请求处理代码前进行过滤：
+            """
+            return redirect(url_for('index'))  # 重定向回主页
+
+        # 获取表单数据
+        x1 = request.form.get('x1')  # 传入表单对应输入字段的 name 值
+        x2 = request.form.get('x2')
+        # 验证数据
+        if not x1 or not x2:
+            """
+             or type(x1) != type(50.0) or type(x1) != type(50) or type(x2) != type(300.0) or type(x2) != type(300):
+            """
+            flash('Invalid input.')  # 显示错误提示
+            return redirect(url_for('index'))  # 重定向回主页
+        else:
+            try:
+                y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(
+                    eval(x1) / 50,
+                    eval(x2) / 300)
+            except:
+                flash('请重新输入，不要输入非数字内容！')  # 显示错误提示
+                return redirect(url_for('index'))  # 重定向回主页
+        # 保存表单数据到数据库
+        global id_user, id_area
+        row_ha = Ha_info(
+            # id_ha 自增
+            x1=x1,
+            x2=x2,
+            y=y0,
+            date=date.today(),
+            id_user=id_user,  # 需要从 登录用户 获取。这里 global 来的 id_user 已经被登录界面赋值了！
+            id_area=
+            id_area,  # 需要从 登录用户 获取，参考 test_fk.py。这里 global 来的 id_area 已经被登录界面赋值了！
+        )  # 创建记录
+        # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
+        db.session.add(row_ha)  # 添加到数据库会话
+        db.session.commit()  # 提交数据库会话
+        flash('写入成功！')  # 显示成功创建的提示
+        return redirect(url_for('index'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
+        # return render_template('index.html', RESULT=str(y0))# 本意是重定向回主页“return redirect(url_for('index'))”
+    # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
+    list_ha = Ha_info.query.order_by(db.desc(
+        Ha_info.id_ha)).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+    list_ha_limit = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).limit(
+        10).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+    """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
+    return render_template('ha_detail.html',
+                           Area_info=Area_info,
+                           User_info=User_info,
+                           list_ha=list_ha,
+                           list_ha_limit=list_ha_limit,
+                           RESULT=str(y0))
 
 
 # 编辑 Ha_info 条目
@@ -443,9 +528,9 @@ def page_not_found(e):  # 接受异常对象作为参数
 # 模板上下文处理函数
 @app.context_processor
 def inject_user():  # 函数名可以随意修改
+    global NAME_USER
     """现在我们可以删除 404 错误处理函数 errorhandler(404) 和主页视图函数中的 user_info 变量定义，并删除在 render_template() 函数里传入的关键字参数："""
-    user_info = User_info.query.first()
-    return dict(user_info=user_info)  # 需要返回字典，等同于 return {'user': user}
+    return dict(NAME_USER=NAME_USER)  # 需要返回字典，等同于 return {'user': user}
 
 
 # flash() 函数在内部会把消息存储到 Flask 提供的 session 对象里。
@@ -524,7 +609,7 @@ def load_user(id_user):  # 创建用户加载回调函数，接受用户 ID 作�
 # 用户登录
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    global id_user, id_area
+    global id_user, id_area, NAME_USER
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -546,6 +631,8 @@ def login():
 
                 id_area = User_info.query.filter_by(username=username).first(
                 ).id_area  # 就在这外键连接，用 filter_by()。这样就可以在 '/' 下把 id_area 的值赋给 row_ha 中的 id_area 了。
+                NAME_USER = User_info.query.filter_by(
+                    username=username).first().name_user
 
                 login_user(row_user)  # 登入用户。注意这里要选用特定的 column
                 flash('登录成功')
@@ -586,7 +673,7 @@ def register():
             db.session.commit(
             )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
         else:
-            flash('这个地区您是第一位注册')
+            flash('在这个地区，您是第一位注册')
             db.session.add(row_area)  # 添加到数据库会话
             db.session.commit(
             )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
@@ -644,11 +731,11 @@ def register():
 @app.route('/logout')
 @login_required  # 用于视图保护，后面会详细介绍
 def logout():
-    global y0, id_user, id_area  # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
+    global y0, id_user, id_area, NAME_USER  # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
     y0 = ''
     id_user = ''
     id_area = ''
-
+    NAME_USER = ''
     logout_user()  # 登出用户
     flash('再见~')
     return redirect(url_for('index'))  # 重定向回首页

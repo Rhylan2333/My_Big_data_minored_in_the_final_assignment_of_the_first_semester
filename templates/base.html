@@ -3,7 +3,7 @@
 
 <head>
     {% block head %}
-    <title> 欢迎使用我这个web应用，{{ user_info.name_user }}。</title>
+    <title> 欢迎使用我这个web应用🧑‍🌾</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
     <!-- 最新的 Bootstrap5 核心 JavaScript 文件。bootstrap.bundle.js （未压缩版）或 bootstrap.bundle.min.js（压缩版） 包含了捆绑的插件如 popper.min.js 及其他依赖脚本 -->
     <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
-    
+
     <!-- 引入作者的 CSS 文件-->
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
     <!-- 引入图标文件 -->
@@ -44,19 +44,21 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#">管理员登录(建设中)</a>
                 </li>
-                <li class="nav-item">
-                    {% endif %}
+                {% endif %}
             </h1>
         </ul>
     </nav>
     <div class="mt-4 p-5 bg-secondary text-white rounded">
-        <h1>新疆地区田间棉铃虫数量及其危害（信息）管理平台</h1>
-        <small>统计 第一、二代棉铃虫数量，并计算 产量损失率 的 web “小”程序</small>
+        <a align="center">
+            <h1>新疆地区田间棉铃虫数量及其危害（信息）管理平台</h1>
+            <h4>（统计 第一、二代棉铃虫数量，并计算 产量损失率 的 web “小”程序）</h4>
+        </a>
     </div>
     <hr>
     <h2 align="center">
         <img alt="cotton" src="{{ url_for('static', filename='images/cotton.jpg') }}" height="40px">
-        <abbr title="这是您注册的或上一位登录用户的“称呼”">{{ user_info.name_user }}</abbr> 您好
+        <abbr title="这是您注册的“称呼”，点击导航栏的“更改您的信息”以修改。">{{ NAME_USER }}</abbr> 您好
+        <!-- 上一行的“user_info.name_user”要被改为 -->
     </h2>
     <!-- 插入到页面标题上方 -->
     {% for message in get_flashed_messages() %}
@@ -70,9 +72,11 @@
         <a href="https://helloflask.com/tutorial/">Flask 入门教程 使用 Python 和 Flask 开发你的第一个 Web 程序</a><br>
         <a href="https://www.runoob.com/bootstrap5/bootstrap5-tutorial.html">Bootstrap5 教程 | 菜鸟教程</a><br>
         <a href="https://www.csdn.net">CSDN - 专业开发者社区</a><br>
-            <a href="https://stackoverflow.com">Stack Overflow - Where Developers Learn, Share, &amp; Build Careers</a><br>
+        <a href="https://stackoverflow.com">Stack Overflow - Where Developers Learn, Share, &amp; Build Careers</a><br>
         &copy;<a href="https://github.com/Rhylan2333">欢迎来我的 Github 逛逛</a><br>
     </footer>
+    <a href="https://github.com/Rhylan2333/My_Big_data_minored_in_the_final_assignment_of_the_first_semester">本 web
+        应用的源码已上传至 Github</a>
 </body>
 
 </html>

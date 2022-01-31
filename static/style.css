@@ -77,6 +77,11 @@ nav li a:hover {
     float: right;
 }
 
+/* 这是为了 统计 第一、二代棉铃虫数量，并计算 产量损失率 的 web “小”程序 而写的，但这样不行 */
+.float-center {
+    float: center;
+}
+
 /* 两个输入框和提交按钮相关的 CSS 定义如下： */
 /* 覆盖某些浏览器对 input 元素定义的字体 */
 input[type=submit] {

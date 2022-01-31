@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    {% block head %}
+    <title> 欢迎使用我这个web应用🧑‍🌾</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- 新 Bootstrap5 核心 CSS 文件 -->
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/css/bootstrap.min.css">
+    <!-- 最新的 Bootstrap5 核心 JavaScript 文件。bootstrap.bundle.js （未压缩版）或 bootstrap.bundle.min.js（压缩版） 包含了捆绑的插件如 popper.min.js 及其他依赖脚本 -->
+    <script src="https://cdn.staticfile.org/twitter-bootstrap/5.1.1/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 引入作者的 CSS 文件-->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" type="text/css">
+    <!-- 引入图标文件 -->
+    <link rel="icon" href="{{ url_for('static', filename='myicon.ico') }}">
+    {% endblock %}
+</head>
+
+<body>
+    <!-- 插入到页面标题上方 -->
+    <nav class="navbar navbar-expand-sm bg-success navbar-dark">
+        <ul class="navbar-nav">
+            <h1 class="display-6">
+                <li class="nav-item active">
+                    <a class="nav-link" href="{{ url_for('index') }}">首页</a>
+                </li>
+                {% if current_user.is_authenticated %}
+                <li>
+                    <a href="{{ url_for('settings') }}">更改您的信息</a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ url_for('logout') }}">登出</a><!-- class="nav-link disabled" 这个标签无法被点击-->
+                </li>
+                {% else %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('login') }}">用户登录</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('register') }}">注册</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">管理员登录(建设中)</a>
+                </li>
+                {% endif %}
+            </h1>
+        </ul>
+    </nav>
+    <div class="mt-4 p-5 bg-secondary text-white rounded">
+        <a align="center">
+            <h1>新疆地区田间棉铃虫数量及其危害（信息）管理平台</h1>
+            <h4>（统计 第一、二代棉铃虫数量，并计算 产量损失率 的 web “小”程序）</h4>
+        </a>
+    </div>
+    <hr>
+    <h2 align="center">
+        <img alt="cotton" src="{{ url_for('static', filename='images/cotton.jpg') }}" height="40px">
+        <abbr title="这是您注册的“称呼”，点击导航栏的“更改您的信息”以修改。">{{ NAME_USER }}</abbr> 您好
+        <!-- 上一行的“user_info.name_user”要被改为 -->
+    </h2>
+    <!-- 插入到页面标题上方 -->
+    {% for message in get_flashed_messages() %}
+    <div class="alert">{{ message }}</div>
+    {% endfor %}
+    <div class="container p-3 my-2 border">
+        <h2>
+            <mark>
+                {% if current_user.is_authenticated %}
+                按提示输入即可求算、提交：
+                {% else %}
+                您未登录，请先👆登录👆或👆注册👆，否则只能使用<B>“计算”</B>功能。
+                {% endif %}
+            </mark>
+        </h2>
+        <div align="center">
+            <!-- 在模板中可以直接使用 current_user 变量。以创建新条目表单为例，我们在表单外部添加一个 if 判断：
+                在模板渲染时，会先判断当前用户的登录状态（current_user.is_authenticated）。
+                    如果用户没有登录（current_user.is_authenticated 返回 False），
+                    就不会渲染如下代码块，即表单 <form method="POST" name="form">...</form> 部分的 HTML 代码 -->
+            {% if current_user.is_authenticated %}
+            <form method="POST" name="form">
+                <!-- 指定提交方法为 POST -->
+                第一代棉铃虫数量(头/百株)
+                <input type="text" name="x1" placeholder="输入 X1（数值）" autocomplete="off" required><!-- 文本输入框 -->
+                <br>
+                第二代棉铃虫数量(头/百株)
+                <input type="text" name="x2" placeholder="输入 X2（数值）" autocomplete="off" required><!-- 文本输入框 -->
+                <br>
+                <input type="submit" name="submit" value="👉计算并提交👈" class="btn" /><br><!-- 提交按钮 -->
+                产量损失率(%)
+                <input type="text" name="result" placeholder="得出 Y（数值）" readonly="readonly" value="{{ RESULT }}" />
+                <br>
+            </form>
+            {% else %}
+            <form method="POST" name="form">
+                <!-- 指定提交方法为 POST -->
+                第一代棉铃虫数量(头/百株)
+                <input type="text" name="x1" placeholder="输入 X1（数值）" autocomplete="off" required><!-- 文本输入框 -->
+                <br>
+                第二代棉铃虫数量(头/百株)
+                <input type="text" name="x2" placeholder="输入 X2（数值）" autocomplete="off" required><!-- 文本输入框 -->
+                <br>
+                <input type="submit" name="submit" value="👉计算👈" class="btn" /><br><!-- 提交按钮 -->
+                产量损失率(%)
+                <input type="text" name="result" placeholder="得出 Y（数值）" readonly="readonly"
+                    value="{{ RESULT_visitor }}" />
+                <br>
+            </form>
+            {% endif %}{# 模板内容保护 #}
+
+        </div>
+        <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->
+        <div align="right">
+            {# 使用 length 过滤器获取 list_ha 变量的长度 #}
+            {# {{ 变量|过滤器 }} #}
+            <!--有花括号不能用这种注释-->
+            已有 {{ list_ha | length }} 条记录。
+            {% if current_user.is_authenticated %}
+            <a href="{{ url_for('ha_detail') }}">显示全部记录</a>
+            {% endif %}{# 模板内容保护 #}
+        </div>
+        {% if current_user.is_authenticated %}
+        <div class="container mt-3">
+            <div class="table-responsive-lg">
+                <table class="table table-striped table-hover ">
+                    <thead class="table-bordered table-success">
+                        <tr>
+                            <th>编号(id)</th>
+                            <th>X1(头/百株)</th>
+                            <th>X2(头/百株)</th>
+                            <th>Y(%)</th>
+                            <th>地区</th>
+                            <th>日期(年-月-日)</th>
+                            <th>记录人“称呼”</th>
+                            <th>操作按钮</th>
+                        </tr>
+                    <tbody>
+                        {% for row_ha in list_ha %} {# 迭代 list_ha 变量 #}
+                        <tr>
+                            <td>
+                                {{ row_ha.id_ha | int }}
+                            </td>
+                            <td>
+                                <code>{{ row_ha.x1 | round(1, 'floor') }}</code>&emsp;
+                            </td>
+                            <td>
+                                <code>{{ row_ha.x2 | round(1, 'floor') }}</code>&emsp;
+                            </td>
+                            <td>
+                                <code>{{ row_ha.y | round(2, 'floor') }}</code>&emsp;
+                            </td>
+                            <td>
+                                <code>{{ Area_info.query.filter_by(id_area=row_ha.id_area).first().name_area }}</code>&emsp;
+                            </td>
+                            <td>
+                                <code>{{ row_ha.date }}{# 等同于 row_ha['x1'] #}</code>&emsp;
+                            </td>
+                            <td>
+                                <code>{{ User_info.query.filter_by(id_user=row_ha.id_user).first().name_user }}</code>&emsp;
+                            </td>
+                            <td class="table-info">
+                                <!-- <span class="float-right"> -->
+                                {% if current_user.is_authenticated %}
+                                <a class="btn" href="{{ url_for('edit', id_ha=row_ha.id_ha) }}">编辑</a>
+                                <form class="inline-form" method="post"
+                                    action="{{ url_for('delete', id_ha=row_ha.id_ha) }}">
+                                    <input class="btn" type="submit" name="delete" value="删除"
+                                        onclick="return confirm('您确定删除吗？')">
+                                </form>
+                                {% endif %}{# 模板内容保护 #}
+                                <!-- </span> -->
+                            </td>
+                        </tr>
+                    </tbody>
+                    {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
+                </table>
+            </div>
+        </div>
+        {% endif %}{# 模板内容保护 #}
+    </div>
+    <div>
+        <footer class="blockquote-footer" align="left">
+            参考: <br>
+            姚举,李号宾,王伟,等. 喀什棉区第一、二代棉铃虫对棉花的复合危害和防治指标研究[J].新疆农业科学,2008,45(1):105-108.<br>
+            <a href="https://helloflask.com/tutorial/">Flask 入门教程 使用 Python 和 Flask 开发你的第一个 Web 程序</a><br>
+            <a href="https://www.runoob.com/bootstrap5/bootstrap5-tutorial.html">Bootstrap5 教程 | 菜鸟教程</a><br>
+            <a href="https://www.csdn.net">CSDN - 专业开发者社区</a><br>
+            <a href="https://stackoverflow.com">Stack Overflow - Where Developers Learn, Share, &amp; Build
+                Careers</a><br>
+            &copy;<a href="https://github.com/Rhylan2333">欢迎来我的 Github 逛逛</a><br>
+        </footer>
+</body>
+
+</html>

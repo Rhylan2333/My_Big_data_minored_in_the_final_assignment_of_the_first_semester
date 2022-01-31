@@ -7,7 +7,7 @@
             {% if current_user.is_authenticated %}
             按提示输入即可求算、提交：
             {% else %}
-            您未登录，请先👆登录👆或👆注册👆。
+            您未登录，请先👆<a href="{{ url_for('login') }}">登录</a>👆或👆<a href="{{ url_for('register') }}">注册</a>👆，否则只能使用<B>“计算”</B>功能。
             {% endif %}
         </mark>
     </h2>
@@ -29,7 +29,20 @@
             产量损失率(%)
             <input type="text" name="result" placeholder="得出 Y（数值）" readonly="readonly" value="{{ RESULT }}" />
             <br>
-
+        </form>
+        {% else %}
+        <form method="POST" name="form">
+            <!-- 指定提交方法为 POST -->
+            第一代棉铃虫数量(头/百株)
+            <input type="text" name="x1" placeholder="输入 X1（数值）" autocomplete="off" required><!-- 文本输入框 -->
+            <br>
+            第二代棉铃虫数量(头/百株)
+            <input type="text" name="x2" placeholder="输入 X2（数值）" autocomplete="off" required><!-- 文本输入框 -->
+            <br>
+            <input type="submit" name="submit" value="👉计算👈" class="btn" /><br><!-- 提交按钮 -->
+            产量损失率(%)
+            <input type="text" name="result" placeholder="得出 Y（数值）" readonly="readonly" value="{{ RESULT_visitor }}" />
+            <br>
         </form>
         {% endif %}{# 模板内容保护 #}
 
@@ -40,9 +53,13 @@
         {# {{ 变量|过滤器 }} #}
         <!--有花括号不能用这种注释-->
         已有 {{ list_ha | length }} 条记录，显示 {{ list_ha_limit | length }} 条。
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('ha_detail') }}">显示全部记录</a>
+        {% endif %}{# 模板内容保护 #}
     </div>
+    {% if current_user.is_authenticated %}
     <div class="container mt-3">
-        <div class="table-responsive-lg">
+        <div class="table-responsive-xl">
             <table class="table table-striped table-hover ">
                 <thead class="table-bordered table-success">
                     <tr>
@@ -56,7 +73,7 @@
                         <th>操作按钮</th>
                     </tr>
                 <tbody>
-                    {% for row_ha in list_ha %} {# 迭代 list_ha 变量 #}
+                    {% for row_ha in list_ha_limit %} {# 迭代 list_ha_limit 变量 #}
                     <tr>
                         <td>
                             {{ row_ha.id_ha | int }}
@@ -97,18 +114,19 @@
             </table>
         </div>
     </div>
-
+    {% endif %}{# 模板内容保护 #}
     <hr>
+</div>
+<div>
     <h2>
         <mark>第一、二代棉铃虫复合为害 与 产量损失 的 回归模型：</mark><br>
     </h2>
     <code>Y = 13.40232 + 4.65075 * X1 + 4.999563 * X2 + 0.624735 * X1**2 + 3.876875 * X2**2 - 1.93 * X1 *
         X2</code><br>
     <p>
-
         <code>Y</code>：产量损失率(%)。<br>
-        <code>X1</code>：一代棉铃虫数量的水平，50 头/100株 规定为“1”。<br>
-        <code>X2</code>：二代棉铃虫数量的水平，300 头/100株 规定为“1”。<br>
+        <code>X1</code>：一代棉铃虫数量的水平(头/百株)，50 头/100株 规定为“1”。<br>
+        <code>X2</code>：二代棉铃虫数量的水平(头/百株)，300 头/100株 规定为“1”。<br>
     </p>
     <hr>
     <h2>
