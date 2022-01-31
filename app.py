@@ -158,7 +158,7 @@ def forge():
         'username': 'nonghu',
         'password_hash': generate_password_hash('123'),
         'id_area': 0  # 这是外键
-      }]  # 创建 user 实例
+    }]  # 创建 user 实例
 
     list_ha = [{
         'id_ha': 5,
@@ -203,6 +203,7 @@ def forge():
     }]
 
     for row_admin in list_admin:
+        """在此实现下两行 admin 实例所对应的 Admin_info 模型中定义的 list_area_info 接着由 relationship 生成的 InstrumentedList"""
         print(row_admin)
         admin = Admin_info(
             id_admin=row_admin['id_admin'],
@@ -210,7 +211,7 @@ def forge():
             adminname=row_admin['adminname'],
             password_hash=row_admin['password_hash']
         )  # 把这个 def 中的 name_admin = 'Yuhao Cai' 左传给 Admin_info 模型中的 name_admin
-        print(admin)
+        print(admin)  # 检查此实例是否创建成功
         db.session.add(admin)
 
     for row_area in list_area:
@@ -220,19 +221,31 @@ def forge():
             name_area=row_area['name_area'],
             id_admin=row_area['id_admin']  # 这是外键
         )  # 创建实例
-        print(area)
+        print(area)  # 检查此实例是否创建成功
+
+        admin.list_area_info.append(
+            area)  # 向 admin 实例中的 relationship 生成的 list_area_info 传入 area 实例
+        print(
+            admin.list_area_info[-1].name_area)  # 获取 InstrumentedList 的倒数第一个元素
+
         db.session.add(area)
 
     for row_user in list_user:
         print(row_user)
         user = User_info(
-            id_user = row_user['id_user'],
+            id_user=row_user['id_user'],
             name_user=row_user['name_user'],
-            username = row_user['username'],
+            username=row_user['username'],
             password_hash=row_user['password_hash'],
             id_area=row_user['id_area']
         )  # 把这个 def 中的 name_user = '蔡雨豪' 左传给 User_info 模型中的 name_user
         print(user)
+
+        area.list_user_info.append(
+            user)  # 向 area 实例中的 relationship 生成的 list_user_info 传入 user 实例
+        print(
+            area.list_user_info[-1].name_user)  # 获取 InstrumentedList 的倒数第一个元素
+
         db.session.add(user)
 
     for row_ha in list_ha:
@@ -247,6 +260,18 @@ def forge():
             id_area=row_ha['id_area']
         )  # 创建一个 row_ha 记录，等号左边的“x1、x2、y”与ha_info表中的“x1、x2、y”要匹配/相等
         print(ha)
+
+        area.list_ha_info.append(
+            ha
+        )  # 向 area 实例中的 relationship 生成的 list_ha_info 传入 ha 实例。源自 print(area.list_ha_info)
+        user.list_ha_info.append(
+            ha
+        )  # 向 user 实例中的 relationship 生成的 list_ha_info 传入 ha 实例。源自 print(user.list_ha_info)
+        print(
+            area.list_ha_info[-1].id_user)  # 获取 InstrumentedList 的倒数第一个元素
+        print(
+            user.list_ha_info[-1].id_area)  # 获取 InstrumentedList 的倒数第一个元素
+
         db.session.add(ha)
 
     db.session.commit()
@@ -255,6 +280,7 @@ def forge():
 
 
 y0 = ''  # 专门为显示 产量损失率(%) 而设计的。发现要在 if 的上一层才能成功渲染。
+
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -295,7 +321,7 @@ def index():
             date=date.today(),
             id_user='',  # 需要从 登录用户 获取，参考 test_fk.py
             id_area='',  # 需要从 登录用户 获取，参考 test_fk.py
-            )  # 创建记录
+        )  # 创建记录
         # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
         db.session.add(row_ha)  # 添加到数据库会话
         db.session.commit()  # 提交数据库会话
