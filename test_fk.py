@@ -2,8 +2,9 @@ from app import Admin_info, Area_info, User_info, Ha_info
 from formula import cal_the_complex_of_1_and_2_generation_of_Ha_0
 from werkzeug.security import generate_password_hash
 from datetime import date
-#
+
 # test1：测试 Area_info 的外键匹配上 Admin_info 没
+"""Admin_info 的实例未被创建"""
 admin_instance = Admin_info(
     id_admin=0,
     name_admin='管理员0',
@@ -27,7 +28,7 @@ print(admin_instance.list_area_info[-1].name_area
 print("“Area_info 的外键匹配上 Admin_info 没”？测试结果如上。\n")
 
 # test2：测试 User_info 的外键匹配上 Area_info 没
-# Area_info 的实例已在 test1 中创建，故现在只需要创建 User_info 的实例
+"""Area_info 的实例已在 test1 中创建，故现在只需要创建 User_info 的实例"""
 print(admin_instance.list_area_info
       )  # 测试 admin_instance 实例中的 relationship 生成的 list
 
@@ -45,8 +46,8 @@ print(
     area_instance.list_user_info[-1].name_user)  # 获取 InstrumentedList 的倒数第一个元素
 print("“User_info 的外键匹配上 Area_info 没”？测试结果如上。\n")
 
-# test3：测试 Ha_info 的外键匹配上 User_info、Area_info 没
-# Area_info、User_info的实例已在 test1、test2 中创建，故现在只需要创建 Ha_info 的实例
+# test3：测试 Ha_info 的外键匹配上 User_info、Area_info 没"""
+"""Area_info、User_info的实例已在 test1、test2 中创建，故现在只需要创建 Ha_info 的实例"""
 print(
     area_instance.list_ha_info)  # 测试 area_instance 实例中的 relationship 生成的 list
 print(

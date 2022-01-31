@@ -42,7 +42,9 @@ db = SQLAlchemy(app)
 class Admin_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生成，小写处理）
     id_admin = db.Column(db.Integer, primary_key=True)  # 主键，管理员id
     name_admin = db.Column(db.String(20), unique=True)  # 管理员称呼
-    list_area_info= db.relationship('Area_info', backref='area')  # 这里新建了一个名叫 area 的属性用来表示当前模型中包含的 Area_info 列表。
+    list_area_info = db.relationship(
+        'Area_info',
+        backref='area')  # 这里新建了一个名叫 area 的属性用来表示当前模型中包含的 Area_info 列表。
     """
     第一部分 —— 'Area_info' 表示关系另一端的模型的名称。
     第二部分 —— 是一个名叫 backref 的参数，叫做反向关系，我们将其设置成 'area_info' ，
@@ -67,8 +69,8 @@ class Admin_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生
 class Area_info(db.Model):  # 表名将会是 area_info （自动生成，小写处理）
     id_area = db.Column(db.Integer, primary_key=True)  # 主键，地区id
     name_area = db.Column(db.String(20), unique=True)  # 地区名
-    list_ha_info= db.relationship('Ha_info', backref='ha')
-    list_user_info= db.relationship('User_info', backref='user')
+    list_ha_info = db.relationship('Ha_info', backref='ha')
+    list_user_info = db.relationship('User_info', backref='user')
     id_admin = db.Column(db.Integer,
                          db.ForeignKey('admin_info.id_admin'))  # 外键，管理员id
 
@@ -85,7 +87,7 @@ class User_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生�
     """
     id_user = db.Column(db.Integer, primary_key=True)  # 主键，农户id
     name_user = db.Column(db.String(20), unique=True)  # 农户称呼
-    list_ha_info= db.relationship('Ha_info', backref='ha_info')  # 这个功能未能实现
+    list_ha_info = db.relationship('Ha_info', backref='ha_info')  # 这个功能未能实现
     username = db.Column(db.String(20))  # 农户的用户名
     password_hash = db.Column(db.String(128))  # 农户密码
     id_area = db.Column(db.Integer,
@@ -131,19 +133,43 @@ def initdb(drop):
 def forge():
     """Generate fake data."""
     db.create_all()
-    # 全局的两个变量移动到这个函数内
-    name_user = '蔡雨豪'
-    password_hash_user = generate_password_hash('123')
-    name_admin = 'Yuhao Cai'
-    password_hash_admin = generate_password_hash('123456')
+    # 全局变量 list_…… 移动到这个函数内
+    # name_user = '蔡雨豪'
+    # password_hash_user = generate_password_hash('123')
+    # name_admin = 'Yuhao Cai'
+    # password_hash_admin = generate_password_hash('123456')
+
+    list_admin = [{
+        'id_admin': 0,
+        'name_admin': '管理员0',
+        'adminname': 'guanliyua',
+        'password_hash': generate_password_hash('123456')
+    }]  # 创建 admin 实例
+
+    list_area = [{
+        'id_area': 0,
+        'name_area': "伊犁",
+        'id_admin': 0  # 这是外键
+    }]  # 创建 area 实例
+
+    list_user = [{
+        'id_user': 0,
+        'name_user': '农户0',
+        'username': 'nonghu',
+        'password_hash': generate_password_hash('123'),
+        'id_area': 0  # 这是外键
+      }]  # 创建 user 实例
+
     list_ha = [{
+        'id_ha': 5,
         'x1': 50,
         'x2': 300,
         'y': '25.624243',
         'date': date(2022, 1, 29),
-        'id_user': 1,
-        'id_area': 1
+        'id_user': 5,
+        'id_area': 5
     }, {
+        'id_ha': 1,
         'x1': 10,
         'x2': 60,
         'y': 15.435247,
@@ -151,47 +177,74 @@ def forge():
         'id_user': 1,
         'id_area': 1
     }, {
+        'id_ha': 2,
         'x1': 20,
         'x2': 120,
         'y': 17.6739028,
         'date': date(2022, 1, 26),
-        'id_user': 1,
-        'id_area': 1
+        'id_user': 2,
+        'id_area': 2
     }, {
+        'id_ha': 3,
         'x1': 30,
         'x2': 180,
         'y': 20.1182874,
         'date': date(2022, 1, 27),
-        'id_user': 1,
-        'id_area': 1
+        'id_user': 3,
+        'id_area': 3
     }, {
+        'id_ha': 4,
         'x1': 40,
         'x2': 250,
         'y': 22.768400800000002,
         'date': date(2022, 1, 28),
-        'id_user': 1,
-        'id_area': 1
+        'id_user': 4,
+        'id_area': 4
     }]
 
-    user = User_info(
-        name_user=name_user, password_hash=password_hash_user
-    )  # 把这个 def 中的 name_user = '蔡雨豪' 左传给 User_info 模型中的 name_user
-    print(user)
-    db.session.add(user)
+    for row_admin in list_admin:
+        print(row_admin)
+        admin = Admin_info(
+            id_admin=row_admin['id_admin'],
+            name_admin=row_admin['name_admin'],
+            adminname=row_admin['adminname'],
+            password_hash=row_admin['password_hash']
+        )  # 把这个 def 中的 name_admin = 'Yuhao Cai' 左传给 Admin_info 模型中的 name_admin
+        print(admin)
+        db.session.add(admin)
 
-    admin = Admin_info(
-        name_admin=name_admin, password_hash=password_hash_admin
-    )  # 把这个 def 中的 name_admin = 'Yuhao Cai' 左传给 Admin_info 模型中的 name_admin
-    print(admin)
-    db.session.add(admin)
+    for row_area in list_area:
+        print(row_area)
+        area = Area_info(
+            id_area=row_area['id_area'],
+            name_area=row_area['name_area'],
+            id_admin=row_area['id_admin']  # 这是外键
+        )  # 创建实例
+        print(area)
+        db.session.add(area)
+
+    for row_user in list_user:
+        print(row_user)
+        user = User_info(
+            id_user = row_user['id_user'],
+            name_user=row_user['name_user'],
+            username = row_user['username'],
+            password_hash=row_user['password_hash'],
+            id_area=row_user['id_area']
+        )  # 把这个 def 中的 name_user = '蔡雨豪' 左传给 User_info 模型中的 name_user
+        print(user)
+        db.session.add(user)
 
     for row_ha in list_ha:
         print(row_ha)
         ha = Ha_info(
+            id_ha=row_ha['id_ha'],
             x1=row_ha['x1'],
             x2=row_ha['x2'],
             y=row_ha['y'],
-            date=row_ha['date']
+            date=row_ha['date'],
+            id_user=row_ha['id_user'],
+            id_area=row_ha['id_area']
         )  # 创建一个 row_ha 记录，等号左边的“x1、x2、y”与ha_info表中的“x1、x2、y”要匹配/相等
         print(ha)
         db.session.add(ha)
@@ -202,7 +255,6 @@ def forge():
 
 
 y0 = ''  # 专门为显示 产量损失率(%) 而设计的。发现要在 if 的上一层才能成功渲染。
-
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -235,7 +287,15 @@ def index():
                 flash('请重新输入，不要输入非数字内容！')  # 显示错误提示
                 return redirect(url_for('index'))  # 重定向回主页
         # 保存表单数据到数据库
-        row_ha = Ha_info(x1=x1, x2=x2, y=y0, date=date.today())  # 创建记录
+        row_ha = Ha_info(
+            # id_ha 自增
+            x1=x1,
+            x2=x2,
+            y=y0,
+            date=date.today(),
+            id_user='',  # 需要从 登录用户 获取，参考 test_fk.py
+            id_area='',  # 需要从 登录用户 获取，参考 test_fk.py
+            )  # 创建记录
         # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
         db.session.add(row_ha)  # 添加到数据库会话
         db.session.commit()  # 提交数据库会话
@@ -455,7 +515,7 @@ def login():
             flash('您的用户名与密码不匹配。')  # 如果验证失败，显示错误消息
             return redirect(url_for('login'))  # 重定向回登录页面
         flash('您的用户名未注册')  # 如果验证失败，显示错误消息
-        return redirect(url_for('login'))  # 重定向回登录页面
+        return redirect(url_for('register'))  # 重定向回登录页面
 
     return render_template('login.html')
 
