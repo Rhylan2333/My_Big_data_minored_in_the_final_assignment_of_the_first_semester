@@ -92,13 +92,13 @@ input[type=text] {
     border: 1px solid #ddd;
 }
 
-input[name=x1] {
+/* input[name=x1] {
     width: 60px;
 }
 
 input[name=x2] {
     width: 60px;
-}
+} */
 
 /* input[name=result] {
     width: 66px;
