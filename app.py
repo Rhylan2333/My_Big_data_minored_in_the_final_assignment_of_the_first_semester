@@ -367,6 +367,7 @@ def index():
 
 # 对 ha_info 的全面的友好的展示
 @app.route('/ha_detail', methods=['GET', 'POST'])
+@login_required
 def ha_detail():
     global y0
     if request.method == 'POST':  # 判断是否是 POST 请求
