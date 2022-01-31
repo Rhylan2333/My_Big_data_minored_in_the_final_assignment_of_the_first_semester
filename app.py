@@ -267,10 +267,8 @@ def forge():
         user.list_ha_info.append(
             ha
         )  # 向 user 实例中的 relationship 生成的 list_ha_info 传入 ha 实例。源自 print(user.list_ha_info)
-        print(
-            area.list_ha_info[-1].id_user)  # 获取 InstrumentedList 的倒数第一个元素
-        print(
-            user.list_ha_info[-1].id_area)  # 获取 InstrumentedList 的倒数第一个元素
+        print(area.list_ha_info[-1].id_user)  # 获取 InstrumentedList 的倒数第一个元素
+        print(user.list_ha_info[-1].id_area)  # 获取 InstrumentedList 的倒数第一个元素
 
         db.session.add(ha)
 
@@ -280,6 +278,8 @@ def forge():
 
 
 y0 = ''  # 专门为显示 产量损失率(%) 而设计的。发现要在 if 的上一层才能成功渲染。
+id_user = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area”这些用于写入 ha_info 表第 6、7 列的数据”这一功能
+id_area = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area”这些用于写入 ha_info 表第 6、7 列的数据”这一功能
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -313,6 +313,7 @@ def index():
                 flash('请重新输入，不要输入非数字内容！')  # 显示错误提示
                 return redirect(url_for('index'))  # 重定向回主页
         # 保存表单数据到数据库
+        global id_user, id_area
         row_ha = Ha_info(
             # id_ha 自增
             x1=x1,
@@ -519,21 +520,24 @@ def load_user(id_user):  # 创建用户加载回调函数，接受用户 ID 作�
 # 用户登录
 @app.route('/login', methods=['GET', 'POST'])
 def login():
+    global id_user, id_area
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
+        name_area = request.form['name_area']  # 这里容易出错！注意，记得在 login.html 里更新 <form>
         if not username or not password:
             flash('无效的输入。')
             return redirect(url_for('login'))
 
         row_user = User_info.query.order_by(db.desc(
-            User_info.id_user)).filter_by(username=username).first()
+            User_info.id_user)).filter_by(username=username).first()  # 其实因为 username 是 UNIQUE，这里用.all()也会只返回一条记录。
         # 验证用户名和密码是否一致
         if row_user:
             """当用户名未写入 User_info，row_user 会查询不到，变成 NoneType，返回 False。这里用 if 来防止报错。 """
             if username == row_user.username and row_user.validate_password(
                     password):
+                id_user=User_info.query.filter_by(username=username).first().id_user  # 就在这外键连接，用 filter_by()
+                id_area=Area_info.query.filter_by(name_area=name_area).first().id_area  # 就在这外键连接，用 filter_by()
                 login_user(row_user)  # 登入用户。注意这里要选用特定的 column
                 flash('登录成功')
                 return redirect(url_for('index'))  # 重定向到主页
@@ -563,12 +567,22 @@ def register():
         if User_info.query.filter_by(username=username).first():
             flash('用户名已注册，请更改用户名。')  # 如果验证失败，显示错误消息
             return redirect(url_for('register'))
-        # 写入
+        # 信息写入 User_info
+        row_area = Area_info(
+            name_area=name_area
+        )
+        db.session.add(row_area)  # 添加到数据库会话  
+        db.session.commit()  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
+
         row_user = User_info(
             name_user=name_user,
             username=username,
-            password_hash=generate_password_hash(password_hash))
+            password_hash=generate_password_hash(password_hash),
+            id_area=Area_info.query.filter_by(name_area=name_area).first().id_area  # 这里用外键，filter_by()。借助先前把 name_area提交数据库的 area_info 表中自动生成的 id_area。
+            )
         db.session.add(row_user)  # 添加到数据库会话
+        # 信息写入 Area_info
+        
         db.session.commit()  # 提交数据库会话
         flash('注册成功。已跳转至登录页，请登录')  # 如果验证失败，显示错误消息
         return redirect(url_for('login'))

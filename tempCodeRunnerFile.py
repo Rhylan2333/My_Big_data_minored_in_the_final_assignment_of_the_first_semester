@@ -1,3 +1,1 @@
-.append(
-    ha_instance
-)  # 向 area_instance 实例
+  # 导入模型类、db变量
