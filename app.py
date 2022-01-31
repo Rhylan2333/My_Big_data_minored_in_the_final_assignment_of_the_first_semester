@@ -524,7 +524,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        # name_area = request.form['name_area']  # 这里容易出错！注意，记得在 login.html 里更新 <form>
+        # name_area = request.form['name_area']  # 这里容易出错！可以不从表单获取，而从外键。注意，记得在 login.html 里更新 <form>
         if not username or not password:
             flash('无效的输入。')
             return redirect(url_for('login'))
@@ -540,8 +540,8 @@ def login():
                 id_user = User_info.query.filter_by(username=username).first(
                 ).id_user  # 就在这外键连接，用 filter_by()。这样就可以在 '/' 下把 id_user 的值赋给 row_ha 中的 id_user 了。
 
-                # id_area = Area_info.query.filter_by(name_area=name_area).first(
-                # ).id_area  # 就在这外键连接，用 filter_by()。这样就可以在 '/' 下把 id_area 的值赋给 row_ha 中的 id_area 了。
+                id_area = User_info.query.filter_by(username=username).first(
+                ).id_area  # 就在这外键连接，用 filter_by()。这样就可以在 '/' 下把 id_area 的值赋给 row_ha 中的 id_area 了。
 
                 login_user(row_user)  # 登入用户。注意这里要选用特定的 column
                 flash('登录成功')
