@@ -88,7 +88,7 @@ class User_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生�
     id_user = db.Column(db.Integer, primary_key=True)  # 主键，农户id
     name_user = db.Column(db.String(20), unique=True)  # 农户称呼
     list_ha_info = db.relationship('Ha_info', backref='ha_info')  # 这个功能未能实现
-    username = db.Column(db.String(20))  # 农户的用户名
+    username = db.Column(db.String(20), unique=True)  # 农户的用户名
     password_hash = db.Column(db.String(128))  # 农户密码
     id_area = db.Column(db.Integer,
                         db.ForeignKey('area_info.id_area'))  # 外键，农户所属地区id
@@ -320,8 +320,8 @@ def index():
             x2=x2,
             y=y0,
             date=date.today(),
-            id_user='',  # 需要从 登录用户 获取，参考 test_fk.py
-            id_area='',  # 需要从 登录用户 获取，参考 test_fk.py
+            id_user=id_user,  # 需要从 登录用户 获取。这里 global 来的 id_user 已经被登录界面赋值了！
+            id_area=id_area,  # 需要从 登录用户 获取，参考 test_fk.py。这里 global 来的 id_area 已经被登录界面赋值了！
         )  # 创建记录
         # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
         db.session.add(row_ha)  # 添加到数据库会话
@@ -524,20 +524,25 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        name_area = request.form['name_area']  # 这里容易出错！注意，记得在 login.html 里更新 <form>
+        # name_area = request.form['name_area']  # 这里容易出错！注意，记得在 login.html 里更新 <form>
         if not username or not password:
             flash('无效的输入。')
             return redirect(url_for('login'))
 
         row_user = User_info.query.order_by(db.desc(
-            User_info.id_user)).filter_by(username=username).first()  # 其实因为 username 是 UNIQUE，这里用.all()也会只返回一条记录。
+            User_info.id_user)).filter_by(username=username).first(
+            )  # 其实因为 username 是 UNIQUE，这里用.all()也会只返回一条记录。
         # 验证用户名和密码是否一致
         if row_user:
             """当用户名未写入 User_info，row_user 会查询不到，变成 NoneType，返回 False。这里用 if 来防止报错。 """
             if username == row_user.username and row_user.validate_password(
                     password):
-                id_user=User_info.query.filter_by(username=username).first().id_user  # 就在这外键连接，用 filter_by()
-                id_area=Area_info.query.filter_by(name_area=name_area).first().id_area  # 就在这外键连接，用 filter_by()
+                id_user = User_info.query.filter_by(username=username).first(
+                ).id_user  # 就在这外键连接，用 filter_by()。这样就可以在 '/' 下把 id_user 的值赋给 row_ha 中的 id_user 了。
+
+                # id_area = Area_info.query.filter_by(name_area=name_area).first(
+                # ).id_area  # 就在这外键连接，用 filter_by()。这样就可以在 '/' 下把 id_area 的值赋给 row_ha 中的 id_area 了。
+
                 login_user(row_user)  # 登入用户。注意这里要选用特定的 column
                 flash('登录成功')
                 return redirect(url_for('index'))  # 重定向到主页
@@ -564,25 +569,29 @@ def register():
             return redirect(url_for('register'))  # 重定向回注册页面
 
         # 验证是否被注册
-        if User_info.query.filter_by(username=username).first():
-            flash('用户名已注册，请更改用户名。')  # 如果验证失败，显示错误消息
+        if User_info.query.filter_by(username=username).first() or User_info.query.filter_by(name_user=name_user).first():
+            flash('“称呼”或用户名已注册，请更改用户名。')  # 如果验证失败，显示错误消息
             return redirect(url_for('register'))
-        # 信息写入 User_info
-        row_area = Area_info(
-            name_area=name_area
-        )
-        db.session.add(row_area)  # 添加到数据库会话  
-        db.session.commit()  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
 
+        # 信息写入 Area_info
+        row_area = Area_info(name_area=name_area)
+        if Area_info.query.filter_by(name_area=name_area).first():
+            flash('这个地区不止您一位注册')  # 如果验证失败，显示错误消息
+            db.session.commit()  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
+        else:
+            flash('这个地区您是第一位注册')
+            db.session.add(row_area)  # 添加到数据库会话
+            db.session.commit(
+            )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
+
+        # 信息写入 User_info
         row_user = User_info(
             name_user=name_user,
             username=username,
             password_hash=generate_password_hash(password_hash),
             id_area=Area_info.query.filter_by(name_area=name_area).first().id_area  # 这里用外键，filter_by()。借助先前把 name_area提交数据库的 area_info 表中自动生成的 id_area。
-            )
+        )
         db.session.add(row_user)  # 添加到数据库会话
-        # 信息写入 Area_info
-        
         db.session.commit()  # 提交数据库会话
         flash('注册成功。已跳转至登录页，请登录')  # 如果验证失败，显示错误消息
         return redirect(url_for('login'))
@@ -627,6 +636,11 @@ def register():
 @app.route('/logout')
 @login_required  # 用于视图保护，后面会详细介绍
 def logout():
+    global y0, id_user, id_area  # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
+    y0 = ''
+    id_user = ''
+    id_area = ''
+
     logout_user()  # 登出用户
     flash('再见~')
     return redirect(url_for('index'))  # 重定向回首页
