@@ -38,17 +38,39 @@ db = SQLAlchemy(app)
 """
 
 
-# 棉铃虫信息 表
-class Ha_info(db.Model):  # 表名将会是 ha_info
-    id_ha = db.Column(db.Integer, primary_key=True)  # 主键
-    x1 = db.Column(db.Float)  # 一代幼虫量(头／百株)
-    x2 = db.Column(db.Float)  # 二代幼虫量(头／百株)
-    y = db.Column(db.Float)  # 理论产量损失率(%)
-    date = db.Column(db.Date, default=date.today())  # 记录时间
-    id_user = db.Column(db.Integer,
-                        db.ForeignKey('user_info.id_user'))  # 外键，记录农户id
-    id_area = db.Column(db.Integer,
-                        db.ForeignKey('area_info.id_area'))  # 外键，记录地区id
+# 管理员 表
+class Admin_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生成，小写处理）
+    id_admin = db.Column(db.Integer, primary_key=True)  # 主键，管理员id
+    name_admin = db.Column(db.String(20), unique=True)  # 管理员称呼
+    list_area_info= db.relationship('Area_info', backref='area')  # 这里新建了一个名叫 area 的属性用来表示当前模型中包含的 Area_info 列表。
+    """
+    第一部分 —— 'Area_info' 表示关系另一端的模型的名称。
+    第二部分 —— 是一个名叫 backref 的参数，叫做反向关系，我们将其设置成 'area_info' ，
+        它会向 Area_info 模型中添加一个名叫 area_info 的属性，
+        这个属性可以替代 id_admin（FK） 访问 Area_info 模型，但是它获取的是 Area_info 模型的对象，而非 Area_info 模型中 id_admin（FK）对应的值。
+    """
+    adminname = db.Column(db.String(20))  #管理员的用户名
+    password_hash = db.Column(db.String(128))  # 农户密码
+
+    def set_password(self, password):  # 用来设置密码的方法，接受密码作为参数
+        self.password_hash = generate_password_hash(password)  # 将生成的密码保持到对应字段
+
+    def validate_password(self, password):  # 用于验证密码的方法，接受密码作为参数
+        return check_password_hash(self.password_hash, password)  # 返回布尔值
+
+    def get_id(self):
+        """"表示感谢https://www.cnpython.com/qa/162793"""
+        return (self.id_admin)
+
+
+# 地区 表
+class Area_info(db.Model):  # 表名将会是 area_info （自动生成，小写处理）
+    id_area = db.Column(db.Integer, primary_key=True)  # 主键，地区id
+    name_area = db.Column(db.String(20), unique=True)  # 地区名
+    list_ha_info= db.relationship('Ha_info', backref='ha')
+    list_user_info= db.relationship('User_info', backref='user')
+    id_admin = db.Column(db.Integer,
+                         db.ForeignKey('admin_info.id_admin'))  # 外键，管理员id
 
 
 # 农户 表
@@ -63,17 +85,12 @@ class User_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生�
     """
     id_user = db.Column(db.Integer, primary_key=True)  # 主键，农户id
     name_user = db.Column(db.String(20), unique=True)  # 农户称呼
-    # ha= db.relationship('Ha_info', backref='ha_info')  # 这个功能未能实现
+    list_ha_info= db.relationship('Ha_info', backref='ha_info')  # 这个功能未能实现
     username = db.Column(db.String(20))  # 农户的用户名
     password_hash = db.Column(db.String(128))  # 农户密码
     id_area = db.Column(db.Integer,
                         db.ForeignKey('area_info.id_area'))  # 外键，农户所属地区id
-    """
-    a = Area_info(id_area=1, name_area="新疆")
-    u = User_info(id_user=10, name_user="蔡雨豪", id_area=1)
-    a.name_user.append(u)
-    print(u.name_area)
-    """
+
     def set_password(self, password):  # 用来设置密码的方法，接受密码作为参数
         self.password_hash = generate_password_hash(password)  # 将生成的密码保持到对应字段
 
@@ -85,33 +102,17 @@ class User_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生�
         return (self.id_user)
 
 
-# 地区 表
-class Area_info(db.Model):  # 表名将会是 area_info （自动生成，小写处理）
-    id_area = db.Column(db.Integer, primary_key=True)  # 主键，地区id
-    name_area = db.Column(db.String(20), unique=True)  # 地区名
-    # ha= db.relationship('Ha_info', backref='ha_info')
-    # user= db.relationship('User_info', backref='user_info')
-    id_admin = db.Column(db.Integer,
-                         db.ForeignKey('admin_info.id_admin'))  # 外键，管理员id
-
-
-# 管理员 表
-class Admin_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生成，小写处理）
-    id_admin = db.Column(db.Integer, primary_key=True)  # 主键，管理员id
-    name_admin = db.Column(db.String(20), unique=True)  # 管理员称呼
-    # area= db.relationship('Area_info', backref='area_info')
-    adminname = db.Column(db.String(20))  #管理员的用户名
-    password_hash = db.Column(db.String(128))  # 农户密码
-
-    def set_password(self, password):  # 用来设置密码的方法，接受密码作为参数
-        self.password_hash = generate_password_hash(password)  # 将生成的密码保持到对应字段
-
-    def validate_password(self, password):  # 用于验证密码的方法，接受密码作为参数
-        return check_password_hash(self.password_hash, password)  # 返回布尔值
-
-    def get_id(self):
-        """"表示感谢https://www.cnpython.com/qa/162793"""
-        return (self.id_admin)
+# 棉铃虫信息 表
+class Ha_info(db.Model):  # 表名将会是 ha_info
+    id_ha = db.Column(db.Integer, primary_key=True)  # 主键
+    x1 = db.Column(db.Float)  # 一代幼虫量(头／百株)
+    x2 = db.Column(db.Float)  # 二代幼虫量(头／百株)
+    y = db.Column(db.Float)  # 理论产量损失率(%)
+    date = db.Column(db.Date, default=date.today())  # 记录时间
+    id_user = db.Column(db.Integer,
+                        db.ForeignKey('user_info.id_user'))  # 外键，记录农户id
+    id_area = db.Column(db.Integer,
+                        db.ForeignKey('area_info.id_area'))  # 外键，记录地区id
 
 
 @app.cli.command()  # 注册为命令
@@ -132,50 +133,54 @@ def forge():
     db.create_all()
     # 全局的两个变量移动到这个函数内
     name_user = '蔡雨豪'
-    password_hash = generate_password_hash('123')
+    password_hash_user = generate_password_hash('123')
     name_admin = 'Yuhao Cai'
-    password_hash = generate_password_hash('123456')
-    list_ha = [
-        {
-            'x1': '50',
-            'x2': '300',
-            'y': '25.624243',
-            'date': date(2022, 1, 29),
-        },
-        {
-            'x1': '10',
-            'x2': '60',
-            'y': '15.435247',
-            'date': date(2022, 1, 25),
-        },
-        {
-            'x1': '20',
-            'x2': '120',
-            'y': '17.6739028',
-            'date': date(2022, 1, 26),
-        },
-        {
-            'x1': '30',
-            'x2': '180',
-            'y': '20.1182874',
-            'date': date(2022, 1, 27),
-        },
-        {
-            'x1': '40',
-            'x2': '250',
-            'y': '22.768400800000002',
-            'date': date(2022, 1, 28),
-        },
-    ]
+    password_hash_admin = generate_password_hash('123456')
+    list_ha = [{
+        'x1': 50,
+        'x2': 300,
+        'y': '25.624243',
+        'date': date(2022, 1, 29),
+        'id_user': 1,
+        'id_area': 1
+    }, {
+        'x1': 10,
+        'x2': 60,
+        'y': 15.435247,
+        'date': date(2022, 1, 25),
+        'id_user': 1,
+        'id_area': 1
+    }, {
+        'x1': 20,
+        'x2': 120,
+        'y': 17.6739028,
+        'date': date(2022, 1, 26),
+        'id_user': 1,
+        'id_area': 1
+    }, {
+        'x1': 30,
+        'x2': 180,
+        'y': 20.1182874,
+        'date': date(2022, 1, 27),
+        'id_user': 1,
+        'id_area': 1
+    }, {
+        'x1': 40,
+        'x2': 250,
+        'y': 22.768400800000002,
+        'date': date(2022, 1, 28),
+        'id_user': 1,
+        'id_area': 1
+    }]
 
     user = User_info(
-        name_user=name_user, password_hash=password_hash
+        name_user=name_user, password_hash=password_hash_user
     )  # 把这个 def 中的 name_user = '蔡雨豪' 左传给 User_info 模型中的 name_user
     print(user)
     db.session.add(user)
 
     admin = Admin_info(
-        name_admin=name_admin, password_hash=password_hash
+        name_admin=name_admin, password_hash=password_hash_admin
     )  # 把这个 def 中的 name_admin = 'Yuhao Cai' 左传给 Admin_info 模型中的 name_admin
     print(admin)
     db.session.add(admin)
@@ -240,10 +245,13 @@ def index():
     # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
     list_ha = Ha_info.query.order_by(db.desc(
         Ha_info.id_ha)).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
-    list_ha_limit = Ha_info.query.order_by(db.desc(
-        Ha_info.id_ha)).limit(7).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+    list_ha_limit = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).limit(
+        7).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
-    return render_template('index.html', list_ha=list_ha,list_ha_limit=list_ha_limit, RESULT=str(y0))
+    return render_template('index.html',
+                           list_ha=list_ha,
+                           list_ha_limit=list_ha_limit,
+                           RESULT=str(y0))
 
 
 # 编辑 Ha_info 条目
