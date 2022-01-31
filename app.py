@@ -321,7 +321,8 @@ def index():
             y=y0,
             date=date.today(),
             id_user=id_user,  # 需要从 登录用户 获取。这里 global 来的 id_user 已经被登录界面赋值了！
-            id_area=id_area,  # 需要从 登录用户 获取，参考 test_fk.py。这里 global 来的 id_area 已经被登录界面赋值了！
+            id_area=
+            id_area,  # 需要从 登录用户 获取，参考 test_fk.py。这里 global 来的 id_area 已经被登录界面赋值了！
         )  # 创建记录
         # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
         db.session.add(row_ha)  # 添加到数据库会话
@@ -336,9 +337,12 @@ def index():
         7).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
     return render_template('index.html',
+                           Area_info=Area_info,
+                           User_info=User_info,
                            list_ha=list_ha,
                            list_ha_limit=list_ha_limit,
-                           RESULT=str(y0))
+                           RESULT=str(y0)
+                           )
 
 
 # 编辑 Ha_info 条目
@@ -569,15 +573,18 @@ def register():
             return redirect(url_for('register'))  # 重定向回注册页面
 
         # 验证是否被注册
-        if User_info.query.filter_by(username=username).first() or User_info.query.filter_by(name_user=name_user).first():
-            flash('“称呼”或用户名已注册，请更改用户名。')  # 如果验证失败，显示错误消息
+        if User_info.query.filter_by(
+                username=username).first() or User_info.query.filter_by(
+                    name_user=name_user).first():
+            flash('“称呼”或用户名已被注册，请更改用户名。')  # 如果验证失败，显示错误消息
             return redirect(url_for('register'))
 
         # 信息写入 Area_info
         row_area = Area_info(name_area=name_area)
         if Area_info.query.filter_by(name_area=name_area).first():
             flash('这个地区不止您一位注册')  # 如果验证失败，显示错误消息
-            db.session.commit()  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
+            db.session.commit(
+            )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
         else:
             flash('这个地区您是第一位注册')
             db.session.add(row_area)  # 添加到数据库会话
@@ -589,7 +596,8 @@ def register():
             name_user=name_user,
             username=username,
             password_hash=generate_password_hash(password_hash),
-            id_area=Area_info.query.filter_by(name_area=name_area).first().id_area  # 这里用外键，filter_by()。借助先前把 name_area提交数据库的 area_info 表中自动生成的 id_area。
+            id_area=Area_info.query.filter_by(name_area=name_area).first().
+            id_area  # 这里用外键，filter_by()。借助先前把 name_area提交数据库的 area_info 表中自动生成的 id_area。
         )
         db.session.add(row_user)  # 添加到数据库会话
         db.session.commit()  # 提交数据库会话
@@ -646,7 +654,7 @@ def logout():
     return redirect(url_for('index'))  # 重定向回首页
 
 
-# 支持设置用户名字
+# 支持设置、更改用户名字
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
@@ -657,7 +665,12 @@ def settings():
         if not name_user or len(name_user) > 20:
             flash('无效的输入。')
             return redirect(url_for('settings'))
-
+        if User_info.query.filter_by(
+                username=username).first() and User_info.query.filter_by(
+                    name_user=name_user).first():
+            """这里完成判断“是否已被注册”用“and”，登录情况要用“or”。"""
+            flash('“称呼”或用户名已被注册，请更改用户名。')  # 如果验证失败，显示错误消息
+            return redirect(url_for('settings'))
         current_user.name_user = name_user
         current_user.username = username
         # current_user 会返回当前登录用户的数据库记录对象

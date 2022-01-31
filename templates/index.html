@@ -46,13 +46,13 @@
             <table class="table table-striped table-hover ">
                 <thead class="table-bordered table-success">
                     <tr>
-                        <th>编号</th>
-                        <th>X1</th>
-                        <th>X2</th>
-                        <th>Y</th>
+                        <th>编号(id)</th>
+                        <th>X1(头/百株)</th>
+                        <th>X2(头/百株)</th>
+                        <th>Y(%)</th>
                         <th>地区</th>
-                        <th>日期</th>
-                        <th>记录人称呼</th>
+                        <th>日期(年-月-日)</th>
+                        <th>记录人“称呼”</th>
                         <th>操作按钮</th>
                     </tr>
                 <tbody>
@@ -71,13 +71,13 @@
                             <code>{{ row_ha.y | round(2, 'floor') }}</code>&emsp;
                         </td>
                         <td>
-                            <code>{{ row_ha.id_area }}</code>&emsp;
+                            <code>{{ Area_info.query.filter_by(id_area=row_ha.id_area).first().name_area }}</code>&emsp;
                         </td>
                         <td>
                             <code>{{ row_ha.date }}{# 等同于 row_ha['x1'] #}</code>&emsp;
                         </td>
                         <td>
-                            <code>{{ row_ha.id_user }}</code>&emsp;
+                            <code>{{ User_info.query.filter_by(id_user=row_ha.id_user).first().name_user }}</code>&emsp;
                         </td>
                         <td class="table-info">
                             <!-- <span class="float-right"> -->
