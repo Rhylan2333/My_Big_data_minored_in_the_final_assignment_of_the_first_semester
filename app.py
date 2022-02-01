@@ -282,7 +282,8 @@ y00= ''  # 为了实现非登录用户的计算功能专门做的
 id_user = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
 id_area = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
 NAME_USER = ''  # 为了“用户登录后，自动获取其 name_user”，把 name_user 传给 base.html 的“NAME_USER”，实现“定制化您好”功能
-
+form_fuzzy_inquiry_name_area = ''  # 为了实现对 ha_info 进行模糊查询，转向新的视图函数
+list_area_name_area = []  # 为了实现对 ha_info 进行模糊查询，转向新的视图函数
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -365,70 +366,38 @@ def index():
                            RESULT=str(y0),
                            RESULT_visitor=str(y00))
 
-# 对 ha_info 的全面的友好的展示
+# 对 ha_info 的全面的友好的展示。对 ha_info 进行模糊查询，转向新的视图函数
 @app.route('/ha_detail', methods=['GET', 'POST'])
 @login_required
 def ha_detail():
-    global y0
+    global form_fuzzy_inquiry_name_area, list_area_name_area
     if request.method == 'POST':  # 判断是否是 POST 请求
         if not current_user.is_authenticated:  # 如果当前用户未认证
-            """
-            is_authenticated 的说明 见 Class User_info...
-            创建新条目的操作稍微有些不同，
-            因为对应的 '/' 视图同时处理显示页面的 GET 请求和创建新条目的 POST 请求，
-            我们仅需要禁止未登录用户创建新条目，
-            因此不能使用 login_required，而是在函数内部的 POST 请求处理代码前进行过滤：
-            """
             return redirect(url_for('index'))  # 重定向回主页
-
-        # 获取表单数据
-        x1 = request.form.get('x1')  # 传入表单对应输入字段的 name 值
-        x2 = request.form.get('x2')
+        # 认证完毕后获取表单数据
+        fuzzy_inquiry_name_area = request.form.get('fuzzy_inquiry_name_area')  # 传入表单对应输入字段的 x1 值
         # 验证数据
-        if not x1 or not x2:
-            """
-             or type(x1) != type(50.0) or type(x1) != type(50) or type(x2) != type(300.0) or type(x2) != type(300):
-            """
-            flash('Invalid input.')  # 显示错误提示
-            return redirect(url_for('index'))  # 重定向回主页
-        else:
-            try:
-                y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(
-                    eval(x1) / 50,
-                    eval(x2) / 300)
-            except:
-                flash('请重新输入，不要输入非数字内容！')  # 显示错误提示
-                return redirect(url_for('index'))  # 重定向回主页
-        # 保存表单数据到数据库
-        global id_user, id_area
-        row_ha = Ha_info(
-            # id_ha 自增
-            x1=x1,
-            x2=x2,
-            y=y0,
-            date=date.today(),
-            id_user=id_user,  # 需要从 登录用户 获取。这里 global 来的 id_user 已经被登录界面赋值了！
-            id_area=
-            id_area,  # 需要从 登录用户 获取，参考 test_fk.py。这里 global 来的 id_area 已经被登录界面赋值了！
-        )  # 创建记录
-        # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
-        db.session.add(row_ha)  # 添加到数据库会话
-        db.session.commit()  # 提交数据库会话
-        flash('写入成功！')  # 显示成功创建的提示
-        return redirect(url_for('index'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
-        # return render_template('index.html', RESULT=str(y0))# 本意是重定向回主页“return redirect(url_for('index'))”
-    # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
+        try:
+            list_area=Area_info.query.order_by(db.desc(Area_info.id_area)).filter(Area_info.name_area.like("%{}%".format(fuzzy_inquiry_name_area))).all()  # 返回一个 包含“满足检索要求”的所有记录的 list
+            """用到了python中的正则表达式"""
+            list_area_name_area = []
+            for row_area in list_area:
+                list_area_name_area.append(row_area.name_area)
+            """如果“伊”匹配到了“伊犁”和“伊宁”，这都会被传入"""
+        except:
+            flash('不合规，请重新输入！')  # 显示错误提示
+            return redirect(url_for('ha_detail'))  # 重定向回主页
+        # 从数据库获取……（获取保存表单数据到数据库）
+        flash('查询结果如下：')
+        return redirect(url_for('ha_detail'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
     list_ha = Ha_info.query.order_by(db.desc(
         Ha_info.id_ha)).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
-    list_ha_limit = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).limit(
-        10).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
     return render_template('ha_detail.html',
                            Area_info=Area_info,
                            User_info=User_info,
                            list_ha=list_ha,
-                           list_ha_limit=list_ha_limit,
-                           RESULT=str(y0))
+                           list_area_name_area=list_area_name_area)
 
 
 # 编辑 Ha_info 条目
@@ -732,11 +701,14 @@ def register():
 @app.route('/logout')
 @login_required  # 用于视图保护，后面会详细介绍
 def logout():
-    global y0, id_user, id_area, NAME_USER  # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
+    global y0, y00, id_user, id_area, NAME_USER , list_area_name_area # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
+    """初始化"""
     y0 = ''
+    y00 = ''
     id_user = ''
     id_area = ''
     NAME_USER = ''
+    list_area_name_area = []
     logout_user()  # 登出用户
     flash('再见~')
     return redirect(url_for('index'))  # 重定向回首页
