@@ -15,6 +15,8 @@ from werkzeug.security import check_password_hash, generate_password_hash
 
 import formula
 
+# 为了部署到线上，我添加了 wsgi.py 文件，这使得我得在 cmd 中先输入 set FLASK_APP=app.py，再输入 flask run 才能运行
+
 WIN = sys.platform.startswith('win')
 if WIN:  # 如果是 Windows 系统，使用三个斜线
     prefix = 'sqlite:///'
@@ -26,6 +28,8 @@ app = Flask(__name__)
 # 写入了一个 SQLALCHEMY_DATABASE_URI 变量来告诉 SQLAlchemy 数据库连接地址：
 app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(
     app.root_path, 'my_ha_data.db')
+# app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(os.path.dirname(app.root_path), os.getenv('DATABASE_FILE', 'my_ha_data.db'))
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
 # 在扩展类实例化前加载配置
 db = SQLAlchemy(app)
@@ -505,7 +509,6 @@ def inject_user():  # 函数名可以随意修改
 # app.config['SECRET_KEY'] = 'dev'  # 等同于 app.secret_key = 'dev'
 # 在部署章节中，上一行代码被改为：
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev')
-app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(os.path.dirname(app.root_path), os.getenv('DATABASE_FILE', 'my_ha_data.db'))
 
 # 生成农户账户
 @app.cli.command()
