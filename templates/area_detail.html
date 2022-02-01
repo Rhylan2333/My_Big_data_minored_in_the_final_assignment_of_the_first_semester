@@ -1,0 +1,94 @@
+{% extends 'base_detail.html' %}
+{% block content %}
+<div class="container p-3 my-2 border">
+    <!-- ha_detail 的专属功能-->
+    <h2>
+        <mark>
+            {% if current_user.is_authenticated %}
+            按提示输入即可查询：
+            {% else %}
+            您未登录，请先👆登录👆或👆注册👆，否则只能使用<B>“计算”</B>功能。
+            {% endif %}
+        </mark>
+    </h2>
+    <div align="center">
+        {% if current_user.is_authenticated %}
+        <form method="POST" action="area_detail" name="form_fuzzy_inquiry_name_area_admin">
+            <!-- 模糊查询功能 -->
+            <h3>输入地区名以“模糊查询”，会显示“地区-农户信息表”</h3>
+            <input type="text" name="fuzzy_inquiry_name_area_admin" placeholder="可输入模糊字，如“伊”" autocomplete="off">
+            <!-- 文本输入框 -->
+            <input type="submit" name="submit" value="👉查询👈" class="btn" /><!-- 提交按钮 --><br>
+            <small>（如果不输入，直接点击👉查询👈会显示所有记录）</small><br>
+        </form>
+        {% endif %}{# 模板内容保护 #}
+    </div>
+    <!-- 在这逐行输出 棉铃虫信息(ha_info) 的记录 -->
+    <div align="right">
+        {# 使用 length 过滤器获取 list_area 变量的长度 #}
+        {# {{ 变量|过滤器 }} #}
+        <!--有花括号不能用这种注释-->
+        已有 {{ list_area | length }} 条记录。
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('index') }}">返回主页</a>
+        {% endif %}{# 模板内容保护 #}
+    </div>
+    {% if current_user.is_authenticated %}
+    <div class="container mt-3">
+        <div class="table-responsive-lg">
+            <table class="table table-striped table-hover ">
+                <thead class="table-bordered table-success">
+                    <tr>
+                        <th>编号(id)</th>
+                        <th><mark>地区名</mark></th>
+                        <th>农户的id</th>
+                        <th>农户的“称呼”</th>
+                        <th>农户的用户名</th>
+                        <th>地区id</th>
+                        <th>操作按钮</th>
+                    </tr>
+                <tbody>
+                    {% for row_area in list_area %} {# 迭代 row_area 变量 #}
+                    {# 我需要在下面写入 if 筛选 #}
+                    {% if  Area_info.query.filter_by(id_area=row_area.id_area).first().name_area in  list_area_admin_name_area %}
+                    <tr>
+                        <td>
+                            {{ row_area.id_area | int }}
+                        </td>
+                        <td>
+                            <code>{{ row_area.name_area }}</code>
+                        </td>
+                        <td>
+                            <code>{{ User_info.query.filter_by(id_area=row_area.id_area).first().id_user | int }}</code>
+                        </td>
+                        <td>
+                            <code>{{ User_info.query.filter_by(id_area=row_area.id_area).first().name_user }}</code>
+                        </td>
+                        <td>
+                            <code>{{ User_info.query.filter_by(id_area=row_area.id_area).first().username }}</code>
+                        </td>
+                        <td>
+                            <code>{{ User_info.query.filter_by(id_area=row_area.id_area).first().id_area }}</code>
+                        </td>
+                        <td class="table-info">
+                            <!-- <span class="float-right"> -->
+                            {% if current_user.is_authenticated %}
+                            <a class="btn" href="#">编辑</a>
+                            <form class="inline-form" method="post"
+                                action="#">
+                                <input class="btn" type="submit" name="delete" value="删除"
+                                    onclick="return confirm('您确定删除吗？')">
+                            </form>
+                            {% endif %}{# 模板内容保护 #}
+                            <!-- </span> -->
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %} {# 使用 endfor 标签结束 for 语句 #}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}{# 模板内容保护 #}
+</div>
+{% endblock %}

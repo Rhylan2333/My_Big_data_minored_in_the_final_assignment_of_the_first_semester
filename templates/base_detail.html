@@ -28,21 +28,32 @@
                     <a class="nav-link" href="{{ url_for('index') }}">首页</a>
                 </li>
                 {% if current_user.is_authenticated %}
-                <li>
-                    <a href="{{ url_for('settings') }}">更改您的信息</a>
-                </li>
-                <li class="nav-item">
-                    <a href="{{ url_for('logout') }}">登出</a><!-- class="nav-link disabled" 这个标签无法被点击-->
-                </li>
+                    {% if current_user.username=='admin' %}
+                    {# 0号农户就是管理员，他可以使用“管理员看地区的功能” #}
+                    <li>
+                        <a href="{{ url_for('settings') }}">更改您的信息</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('logout') }}">登出</a><!-- class="nav-link disabled" 这个标签无法被点击-->
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('area_detail') }}">管理员看地区</a>
+                    </li>
+                    {% else %}
+                    {# 我不会“单页双登录”……也莫得办法 #}
+                    <li>
+                        <a href="{{ url_for('settings') }}">更改您的信息</a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('logout') }}">登出</a><!-- class="nav-link disabled" 这个标签无法被点击-->
+                    </li>
+                    {% endif %}
                 {% else %}
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('login') }}">用户登录</a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('register') }}">注册</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#">管理员登录(建设中)</a>
                 </li>
                 {% endif %}
             </h1>

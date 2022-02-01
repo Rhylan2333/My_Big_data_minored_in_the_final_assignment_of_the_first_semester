@@ -53,9 +53,9 @@
         {# 使用 length 过滤器获取 list_ha、list_ha_limit 变量的长度 #}
         {# {{ 变量 | 过滤器 }} #}
         <!--有花括号不能用这种注释，优先级的问题-->
-        已有 {{ list_ha | length }} 条记录，显示 {{ list_ha_limit | length }} 条。
+        已有 {{ list_ha | length }} 条记录，显示 {{ list_ha_limit | length }} 条。&emsp;
         {% if current_user.is_authenticated %}
-        <a href="{{ url_for('ha_detail') }}">&emsp;进入详细查询页</a>
+        <a href="{{ url_for('ha_detail') }}">进入详细查询页</a>
         {% endif %}{# 模板内容保护，登录了的农户才能有这功能 #}
     </div>
     {% if current_user.is_authenticated %}

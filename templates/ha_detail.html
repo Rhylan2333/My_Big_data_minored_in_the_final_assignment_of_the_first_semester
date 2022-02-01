@@ -19,7 +19,7 @@
         {% if current_user.is_authenticated %}
         <form method="POST" action="ha_detail" name="form_fuzzy_inquiry_name_area">
             <!-- 模糊查询功能 -->
-            <h3>输入地区名以“模糊查询”</h3>
+            <h3>输入地区名以“模糊查询”，会显示“棉铃虫信息记录表”</h3>
             <input type="text" name="fuzzy_inquiry_name_area" placeholder="可输入模糊字，如“伊”" autocomplete="off">
             <!-- 文本输入框 -->
             <input type="submit" name="submit" value="👉查询👈" class="btn" /><!-- 提交按钮 --><br>
@@ -62,7 +62,7 @@
                         <th>X1(头/百株)</th>
                         <th>X2(头/百株)</th>
                         <th>Y(%)</th>
-                        <th>调查地区</th>
+                        <th><mark>调查地区</mark></th>
                         <th>调查日期(年-月-日)</th>
                         <th>调查人的“称呼”</th>
                         <th>操作按钮</th>

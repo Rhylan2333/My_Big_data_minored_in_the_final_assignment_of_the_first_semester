@@ -52,7 +52,7 @@ class Admin_info(db.Model, UserMixin):  # 表名将会是 user_info （自动生
         这个属性可以替代 id_admin（FK） 访问 Area_info 模型，但是它获取的是 Area_info 模型的对象，而非 Area_info 模型中 id_admin（FK）对应的值。
     """
     adminname = db.Column(db.String(20))  #管理员的用户名
-    password_hash = db.Column(db.String(128))  # 农户密码
+    password_hash = db.Column(db.String(128))  # 管理员的密码
 
     def set_password(self, password):  # 用来设置密码的方法，接受密码作为参数
         self.password_hash = generate_password_hash(password)  # 将生成的密码保持到对应字段
@@ -283,9 +283,8 @@ y00 = ''  # 为了实现非登录用户的计算功能专门做的
 id_user = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
 id_area = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
 NAME_USER = ''  # 为了“用户登录后，自动获取其 name_user”，把 name_user 传给 base.html 的“NAME_USER”，实现“定制化您好”功能
-form_fuzzy_inquiry_name_area = ''  # 为了实现对 ha_info 进行模糊查询，转向新的视图函数
 list_area_name_area = []  # 为了实现对 ha_info 进行模糊查询，转向新的视图函数
-
+list_area_admin_name_area = []  # 为了实现对 area_info、user_info 进行模糊查询，转向新的视图函数
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -369,13 +368,13 @@ def index():
 @app.route('/ha_detail', methods=['GET', 'POST'])
 @login_required  # 保护
 def ha_detail():
-    global form_fuzzy_inquiry_name_area, list_area_name_area, NAME_USER
+    global list_area_name_area
     if request.method == 'POST':  # 判断是否是 POST 请求
         if not current_user.is_authenticated:  # 如果当前用户未认证
             return redirect(url_for('index'))  # 重定向回主页
         # 认证完毕后获取表单数据
         fuzzy_inquiry_name_area = request.form.get(
-            'fuzzy_inquiry_name_area')  # 传入表单对应输入字段的 x1 值
+            'fuzzy_inquiry_name_area')  # 传入表单对应输入字段的 fuzzy_inquiry_name_area 值
         # 验证数据
         try:
             list_area = Area_info.query.order_by(db.desc(
@@ -405,6 +404,44 @@ def ha_detail():
                            list_area_name_area=list_area_name_area,
                            NAME_USER=current_user.name_user)  # 只有登录后才能进入详细查询页，所以此时 NAME_USER=current_user.name_user 可用
 
+# 对 area_info 的全面的友好的展示。首页点击“管理员……”即可
+@app.route('/area_detail', methods=['GET', 'POST'])
+@login_required  # 保护
+def area_detail():
+    global list_area_admin_name_area
+    if request.method == 'POST':  # 判断是否是 POST 请求
+        if not current_user.is_authenticated:  # 如果当前用户未认证
+            return redirect(url_for('index'))  # 重定向回主页
+        # 认证完毕后获取表单数据
+        fuzzy_inquiry_name_area_admin = request.form.get(
+            'fuzzy_inquiry_name_area_admin')  # 传入表单对应输入字段的 fuzzy_inquiry_name_area_admin 值
+        # 验证数据
+        try:
+            list_area_admin = Area_info.query.order_by(db.desc(
+                Area_info.id_area)).filter(
+                    Area_info.name_area.like(
+                        "%{}%".format(fuzzy_inquiry_name_area_admin))).all(
+                        )  # 返回一个 包含“满足检索要求”的所有记录的 list
+            """用到了python中的正则表达式"""
+            list_area_admin_name_area = []  # 使用前需要“清空”
+            for row_area_admin in list_area_admin:
+                list_area_admin_name_area.append(row_area_admin.name_area)
+            """如果“伊”匹配到了“伊犁”和“伊宁”，这都会被传入"""
+        except:
+            flash('不合规，请重新输入！')  # 显示错误提示
+            return redirect(url_for('ha_detail'))  # 重定向回主页
+        # 从数据库获取……（获取保存表单数据到数据库）
+        flash('查询结果如下：')
+        return redirect(
+            url_for('area_detail'))  # 重定向回 area_detail
+    list_area = Area_info.query.order_by(db.desc(Area_info.id_area)).all(
+    )  # 读取所有地区信息记录，并倒序排列。之后传给前端，表的最左边会用到。
+    return render_template('area_detail.html',
+                           Area_info=Area_info,
+                           User_info=User_info,
+                           list_area=list_area,
+                           list_area_admin_name_area=list_area_admin_name_area,
+                           NAME_USER=current_user.name_user)
 
 # 编辑 Ha_info 条目
 @app.route('/ha_info/edit/<int:id_ha>', methods=['GET', 'POST'])
@@ -631,7 +668,7 @@ def register():
 @app.route('/logout')
 @login_required  # 用于视图保护，后面会详细介绍
 def logout():
-    global y0, y00, id_user, id_area, NAME_USER, list_area_name_area  # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
+    global y0, y00, id_user, id_area, NAME_USER, list_area_name_area, list_area_admin_name_area  # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
     """初始化"""
     y0 = ''
     y00 = ''
@@ -639,6 +676,7 @@ def logout():
     id_area = ''
     NAME_USER = ''
     list_area_name_area = []  # 虽然说每次查询前都要清空，但……这里会不会出现“头咬尾巴”的情况啊
+    list_area_admin_name_area = []
     logout_user()  # 登出用户
     flash('再见~')
     return redirect(url_for('index'))  # 重定向回首页
