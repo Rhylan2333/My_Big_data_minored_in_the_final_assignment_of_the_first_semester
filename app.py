@@ -26,9 +26,13 @@ else:  # 否则使用四个斜线
 app = Flask(__name__)
 
 # 写入了一个 SQLALCHEMY_DATABASE_URI 变量来告诉 SQLAlchemy 数据库连接地址：
-app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(
-    app.root_path, 'my_ha_data.db')
-# app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(os.path.dirname(app.root_path), os.getenv('DATABASE_FILE', 'my_ha_data.db'))
+SQLALCHEMY_DATABASE_URI = prefix + os.path.join(
+    app.root_path, os.getenv('DATABASE_FILE', 'my_ha_data.db'))
+app.config['SQLALCHEMY_DATABASE_URI'] = SQLALCHEMY_DATABASE_URI
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(
+#     os.path.dirname(app.root_path), os.getenv(
+#         'DATABASE_FILE', 'my_ha_data.db'))  # 这个一用就找不到数据库的位置
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
 # 在扩展类实例化前加载配置
@@ -290,6 +294,7 @@ NAME_USER = ''  # 为了“用户登录后，自动获取其 name_user”，把 
 list_area_name_area = []  # 为了实现对 ha_info 进行模糊查询，转向新的视图函数
 list_area_admin_name_area = []  # 为了实现对 area_info、user_info 进行模糊查询，转向新的视图函数
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     global y0, y00, NAME_USER
@@ -358,14 +363,16 @@ def index():
     list_ha_limit = Ha_info.query.order_by(db.desc(
         Ha_info.id_ha)).limit(10).all()  # 读取所有棉铃虫信息记录，但在主页只显示最新的 10 条。
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
-    return render_template('index.html',
-                           Area_info=Area_info,
-                           User_info=User_info,
-                           list_ha=list_ha,
-                           list_ha_limit=list_ha_limit,
-                           RESULT=str(y0),
-                           RESULT_visitor=str(y00),
-                           NAME_USER=NAME_USER)  # 这里不能用 NAME_USER=current_user.name_user 了，因为“登出”后会报错。
+    return render_template(
+        'index.html',
+        Area_info=Area_info,
+        User_info=User_info,
+        list_ha=list_ha,
+        list_ha_limit=list_ha_limit,
+        RESULT=str(y0),
+        RESULT_visitor=str(y00),
+        NAME_USER=NAME_USER
+    )  # 这里不能用 NAME_USER=current_user.name_user 了，因为“登出”后会报错。
 
 
 # 对 ha_info 的全面的友好的展示。对 ha_info 进行模糊查询，转向新的视图函数
@@ -401,12 +408,15 @@ def ha_detail():
     list_ha = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).all(
     )  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）。之后传给前端。
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
-    return render_template('ha_detail.html',
-                           Area_info=Area_info,
-                           User_info=User_info,
-                           list_ha=list_ha,
-                           list_area_name_area=list_area_name_area,
-                           NAME_USER=current_user.name_user)  # 只有登录后才能进入详细查询页，所以此时 NAME_USER=current_user.name_user 可用
+    return render_template(
+        'ha_detail.html',
+        Area_info=Area_info,
+        User_info=User_info,
+        list_ha=list_ha,
+        list_area_name_area=list_area_name_area,
+        NAME_USER=current_user.name_user
+    )  # 只有登录后才能进入详细查询页，所以此时 NAME_USER=current_user.name_user 可用
+
 
 # 对 area_info 的全面的友好的展示。首页点击“管理员……”即可
 @app.route('/area_detail', methods=['GET', 'POST'])
@@ -418,11 +428,12 @@ def area_detail():
             return redirect(url_for('index'))  # 重定向回主页
         # 认证完毕后获取表单数据
         fuzzy_inquiry_name_area_admin = request.form.get(
-            'fuzzy_inquiry_name_area_admin')  # 传入表单对应输入字段的 fuzzy_inquiry_name_area_admin 值
+            'fuzzy_inquiry_name_area_admin'
+        )  # 传入表单对应输入字段的 fuzzy_inquiry_name_area_admin 值
         # 验证数据
         try:
-            list_area_admin = Area_info.query.order_by(db.desc(
-                Area_info.id_area)).filter(
+            list_area_admin = Area_info.query.order_by(
+                db.desc(Area_info.id_area)).filter(
                     Area_info.name_area.like(
                         "%{}%".format(fuzzy_inquiry_name_area_admin))).all(
                         )  # 返回一个 包含“满足检索要求”的所有记录的 list
@@ -436,16 +447,16 @@ def area_detail():
             return redirect(url_for('ha_detail'))  # 重定向回主页
         # 从数据库获取……（获取保存表单数据到数据库）
         flash('查询结果如下：')
-        return redirect(
-            url_for('area_detail'))  # 重定向回 area_detail
-    list_area = Area_info.query.order_by(db.desc(Area_info.id_area)).all(
-    )  # 读取所有地区信息记录，并倒序排列。之后传给前端，表的最左边会用到。
+        return redirect(url_for('area_detail'))  # 重定向回 area_detail
+    list_area = Area_info.query.order_by(db.desc(
+        Area_info.id_area)).all()  # 读取所有地区信息记录，并倒序排列。之后传给前端，表的最左边会用到。
     return render_template('area_detail.html',
                            Area_info=Area_info,
                            User_info=User_info,
                            list_area=list_area,
                            list_area_admin_name_area=list_area_admin_name_area,
                            NAME_USER=current_user.name_user)
+
 
 # 编辑 Ha_info 条目
 @app.route('/ha_info/edit/<int:id_ha>', methods=['GET', 'POST'])
@@ -472,7 +483,8 @@ def edit(id_ha):
         flash('记录已更新。')
         return redirect(url_for('index'))  # 重定向回主页
         """既然我们要编辑某个条目，那么必然要在输入框里提前把对应的数据放进去，以便于进行更新。在模板里，通过表单 <input> 元素的 value 属性即可将它们提前写到输入框里。"""
-    return render_template('edit.html', row_ha=row_ha,
+    return render_template('edit.html',
+                           row_ha=row_ha,
                            NAME_USER=current_user.name_user)  # 传入被编辑的棉铃虫信息记录
 
 
@@ -509,6 +521,7 @@ def inject_user():  # 函数名可以随意修改
 # app.config['SECRET_KEY'] = 'dev'  # 等同于 app.secret_key = 'dev'
 # 在部署章节中，上一行代码被改为：
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev')
+
 
 # 生成农户账户
 @app.cli.command()
