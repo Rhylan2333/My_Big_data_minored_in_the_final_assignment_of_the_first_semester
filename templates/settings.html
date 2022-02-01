@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>更改您的“称呼”与“用户名”：</h3>
+<div class="container p-3 my-2 border">
+<h3>更改您的“称呼”、“用户名”：</h3>
 <form method="post">
     请输入您的新“称呼”：<input type="text" name="name_user" autocomplete="off" required value="{{ current_user.name_user }}"><br>
     请输入您的新“用户名”：<input type="text" name="username" autocomplete="off" required value="{{ current_user.username }}"><br>
     <input class="btn" type="submit" name="submit" value="👉提交此更改👈">
 </form>
+</div>
 {% endblock %}

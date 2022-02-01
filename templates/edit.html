@@ -1,10 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h3>编辑记录</h3>
-<form method="post">
-    请输入新的 x1 <input type="text" name="x1" autocomplete="off" required value="{{ row_ha.x1 }}"><br>
-    请输入新的 x2 <input type="text" name="x2" autocomplete="off" required value="{{ row_ha.x2 }}"><br>
-    <input class="btn" type="submit" name="submit" value="👉更新">
-</form>
+<div class="container p-3 my-2 border">
+    <h3>编辑记录</h3>
+    <form method="post">
+        请输入新的 x1 <input type="text" name="x1" autocomplete="off" required value="{{ row_ha.x1 }}"><br>
+        请输入新的 x2 <input type="text" name="x2" autocomplete="off" required value="{{ row_ha.x2 }}"><br>
+        <input class="btn" type="submit" name="submit" value="👉更新">
+    </form>
+</div>
 {% endblock %}

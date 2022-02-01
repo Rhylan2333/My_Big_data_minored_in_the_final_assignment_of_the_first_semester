@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container p-3 my-2 border">
 <h3>请注册</h3>
 <form method="post">
     您的“称呼”<br>
@@ -14,4 +15,5 @@
     <input type="text" name="name_area" placeholder="输入您的耕种地区" autocomplete="off" required><br>
     <input class="btn" type="submit" name="submit" value="👉注册👈">
 </form>
+</div>
 {% endblock %}
