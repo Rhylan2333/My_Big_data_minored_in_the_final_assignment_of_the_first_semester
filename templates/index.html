@@ -55,7 +55,7 @@
         <!--有花括号不能用这种注释-->
         已有 {{ list_ha | length }} 条记录，显示 {{ list_ha_limit | length }} 条。
         {% if current_user.is_authenticated %}
-        <a href="{{ url_for('ha_detail') }}">显示全部记录</a>
+        <a href="{{ url_for('ha_detail') }}">进入详细查询页</a>
         {% endif %}{# 模板内容保护 #}
     </div>
     {% if current_user.is_authenticated %}

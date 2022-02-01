@@ -277,19 +277,21 @@ def forge():
     click.echo('虚拟数据已写入数据库 my_ha_data。')
 
 
+# 为了方便数据初始化
 y0 = ''  # 专门为显示 产量损失率(%) 而设计的。发现要在 if 的上一层才能成功渲染。
-y00= ''  # 为了实现非登录用户的计算功能专门做的
+y00 = ''  # 为了实现非登录用户的计算功能专门做的
 id_user = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
 id_area = ''  # 为实现“用户登录后，自动获取其 id_user、name_user、username、id_area，再把这些用于写入 ha_info 表第 6、7 列的数据”这一功能
 NAME_USER = ''  # 为了“用户登录后，自动获取其 name_user”，把 name_user 传给 base.html 的“NAME_USER”，实现“定制化您好”功能
 form_fuzzy_inquiry_name_area = ''  # 为了实现对 ha_info 进行模糊查询，转向新的视图函数
 list_area_name_area = []  # 为了实现对 ha_info 进行模糊查询，转向新的视图函数
 
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global y0, y00
+    global y0, y00, NAME_USER
     if request.method == 'POST':  # 判断是否是 POST 请求
-        if not current_user.is_authenticated:  # 如果当前用户未认证
+        if not current_user.is_authenticated:  # 如果当前用户未认证，则 ta 只能使用“计算”功能
             """
             is_authenticated 的说明 见 Class User_info...
             创建新条目的操作稍微有些不同，
@@ -301,13 +303,11 @@ def index():
             x2 = request.form.get('x2')
             # 验证数据
             if not x1 or not x2:
-                """
-                or type(x1) != type(50.0) or type(x1) != type(50) or type(x2) != type(300.0) or type(x2) != type(300):
-                """
                 flash('Invalid input.')  # 显示错误提示
                 return redirect(url_for('index'))  # 重定向回主页
             else:
                 try:
+                    """防止输入非数字报错"""
                     y00 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(
                         eval(x1) / 50,
                         eval(x2) / 300)
@@ -321,9 +321,6 @@ def index():
         x2 = request.form.get('x2')
         # 验证数据
         if not x1 or not x2:
-            """
-             or type(x1) != type(50.0) or type(x1) != type(50) or type(x2) != type(300.0) or type(x2) != type(300):
-            """
             flash('Invalid input.')  # 显示错误提示
             return redirect(url_for('index'))  # 重定向回主页
         else:
@@ -337,7 +334,7 @@ def index():
         # 保存表单数据到数据库
         global id_user, id_area
         row_ha = Ha_info(
-            # id_ha 自增
+            # id_ha 自增，不必写入
             x1=x1,
             x2=x2,
             y=y0,
@@ -345,7 +342,7 @@ def index():
             id_user=id_user,  # 需要从 登录用户 获取。这里 global 来的 id_user 已经被登录界面赋值了！
             id_area=
             id_area,  # 需要从 登录用户 获取，参考 test_fk.py。这里 global 来的 id_area 已经被登录界面赋值了！
-        )  # 创建记录
+        )  # 创建记录。
         # row_ha = Ha_info(x1=x1, x2=x2, date=date.today())  # 创建记录
         db.session.add(row_ha)  # 添加到数据库会话
         db.session.commit()  # 提交数据库会话
@@ -353,10 +350,10 @@ def index():
         return redirect(url_for('index'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
         # return render_template('index.html', RESULT=str(y0))# 本意是重定向回主页“return redirect(url_for('index'))”
     # user_info = User_info.query.first()  # 读取农户记录。被删掉是因为有了模板上下文处理函数 inject_user()
-    list_ha = Ha_info.query.order_by(db.desc(
-        Ha_info.id_ha)).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
-    list_ha_limit = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).limit(
-        10).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+    list_ha = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).all(
+    )  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）。方便传给前端。
+    list_ha_limit = Ha_info.query.order_by(db.desc(
+        Ha_info.id_ha)).limit(10).all()  # 读取所有棉铃虫信息记录，但在主页只显示最新的 10 条。
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
     return render_template('index.html',
                            Area_info=Area_info,
@@ -364,23 +361,30 @@ def index():
                            list_ha=list_ha,
                            list_ha_limit=list_ha_limit,
                            RESULT=str(y0),
-                           RESULT_visitor=str(y00))
+                           RESULT_visitor=str(y00),
+                           NAME_USER=NAME_USER)  # 这里不能用 NAME_USER=current_user.name_user 了，因为“登出”后会报错。
+
 
 # 对 ha_info 的全面的友好的展示。对 ha_info 进行模糊查询，转向新的视图函数
 @app.route('/ha_detail', methods=['GET', 'POST'])
-@login_required
+@login_required  # 保护
 def ha_detail():
-    global form_fuzzy_inquiry_name_area, list_area_name_area
+    global form_fuzzy_inquiry_name_area, list_area_name_area, NAME_USER
     if request.method == 'POST':  # 判断是否是 POST 请求
         if not current_user.is_authenticated:  # 如果当前用户未认证
             return redirect(url_for('index'))  # 重定向回主页
         # 认证完毕后获取表单数据
-        fuzzy_inquiry_name_area = request.form.get('fuzzy_inquiry_name_area')  # 传入表单对应输入字段的 x1 值
+        fuzzy_inquiry_name_area = request.form.get(
+            'fuzzy_inquiry_name_area')  # 传入表单对应输入字段的 x1 值
         # 验证数据
         try:
-            list_area=Area_info.query.order_by(db.desc(Area_info.id_area)).filter(Area_info.name_area.like("%{}%".format(fuzzy_inquiry_name_area))).all()  # 返回一个 包含“满足检索要求”的所有记录的 list
+            list_area = Area_info.query.order_by(db.desc(
+                Area_info.id_area)).filter(
+                    Area_info.name_area.like(
+                        "%{}%".format(fuzzy_inquiry_name_area))).all(
+                        )  # 返回一个 包含“满足检索要求”的所有记录的 list
             """用到了python中的正则表达式"""
-            list_area_name_area = []
+            list_area_name_area = []  # 使用前需要“清空”
             for row_area in list_area:
                 list_area_name_area.append(row_area.name_area)
             """如果“伊”匹配到了“伊犁”和“伊宁”，这都会被传入"""
@@ -389,15 +393,17 @@ def ha_detail():
             return redirect(url_for('ha_detail'))  # 重定向回主页
         # 从数据库获取……（获取保存表单数据到数据库）
         flash('查询结果如下：')
-        return redirect(url_for('ha_detail'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
-    list_ha = Ha_info.query.order_by(db.desc(
-        Ha_info.id_ha)).all()  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）
+        return redirect(
+            url_for('ha_detail'))  # 重定向回主页。与下一行代码只能二选一吗？那线上计算的功能就没了。
+    list_ha = Ha_info.query.order_by(db.desc(Ha_info.id_ha)).all(
+    )  # 读取所有棉铃虫信息记录，并倒序排列（db.desc(Ha_info.id_ha)）。之后传给前端。
     """<模型类>.query.<过滤方法（可选）>.<查询方法>"""
     return render_template('ha_detail.html',
                            Area_info=Area_info,
                            User_info=User_info,
                            list_ha=list_ha,
-                           list_area_name_area=list_area_name_area)
+                           list_area_name_area=list_area_name_area,
+                           NAME_USER=current_user.name_user)  # 只有登录后才能进入详细查询页，所以此时 NAME_USER=current_user.name_user 可用
 
 
 # 编辑 Ha_info 条目
@@ -425,7 +431,8 @@ def edit(id_ha):
         flash('记录已更新。')
         return redirect(url_for('index'))  # 重定向回主页
         """既然我们要编辑某个条目，那么必然要在输入框里提前把对应的数据放进去，以便于进行更新。在模板里，通过表单 <input> 元素的 value 属性即可将它们提前写到输入框里。"""
-    return render_template('edit.html', row_ha=row_ha)  # 传入被编辑的棉铃虫信息记录
+    return render_template('edit.html', row_ha=row_ha,
+                           NAME_USER=current_user.name_user)  # 传入被编辑的棉铃虫信息记录
 
 
 # 删除 Ha_info 条目
@@ -439,53 +446,6 @@ def delete(id_ha):
     db.session.commit()  # 提交数据库会话
     flash('记录已删除。')
     return redirect(url_for('index'))  # 重定向回主页
-
-
-# @app.route('/calculate', methods=['GET', 'POST'])
-# def calculate():
-#     if request.method == "POST":
-#         X1 = eval(request.form.get('x1')) / 50
-#         X2 = eval(request.form.get('x2')) / 300
-#         Y0 = formula.cal_the_complex_of_1_and_2_generation_of_Ha_0(X1, X2)
-#         return render_template('index.html', RESULT=str(Y0))
-#     return render_template('index.html')  # 返回渲染好的模板作为响应
-
-# def show_list_ha():
-#     # 定义虚拟数据
-#     name_user = '蔡雨豪'
-#     list_ha = [
-#         {
-#             'x1': '50',
-#             'x2': '300',
-#             'y': '25.624243',
-#             'date': '2022-01-29',
-#         },
-#         {
-#             'x1': '10',
-#             'x2': '60',
-#             'y': '15.435247',
-#             'date': '2022-01-25',
-#         },
-#         {
-#             'x1': '20',
-#             'x2': '120',
-#             'y': '17.6739028',
-#             'date': '2022-01-26',
-#         },
-#         {
-#             'x1': '30',
-#             'x2': '180',
-#             'y': '20.1182874',
-#             'date': '2022-01-27',
-#         },
-#         {
-#             'x1': '40',
-#             'x2': '250',
-#             'y': '22.768400800000002',
-#             'date': '2022-01-28',
-#         },
-#     ]
-#     return render_template('index.html', name_user=name_user, list_ha=list_ha)
 
 
 # 404 错误处理函数
@@ -564,9 +524,10 @@ def admin(adminname, password):
     click.echo('Admin Created!')
 
 
-# 初始化 Flask-Login
+# 初始化 Flask-Login。用于登录
 login_manager = LoginManager(app)  # 实例化扩展类
 login_manager.login_view = 'login'  # 为了让这个重定向操作正确执行，我们还需要把 login_manager.login_view 的值设为我们程序的登录视图端点（函数名），把这一行代码放到 login_manager 实例定义下面即可：
+"""我不会一个 app.py 中实现即可登录“农户”，又可登录“管理员”。"""
 
 
 @login_manager.user_loader
@@ -607,13 +568,14 @@ def login():
                 login_user(row_user)  # 登入用户。注意这里要选用特定的 column
                 flash('登录成功')
                 return redirect(url_for('index'))  # 重定向到主页
-
-            flash('您的用户名与密码不匹配。')  # 如果验证失败，显示错误消息
-            return redirect(url_for('login'))  # 重定向回登录页面
-        flash('您的用户名未注册')  # 如果验证失败，显示错误消息
-        return redirect(url_for('register'))  # 重定向回登录页面
-
-    return render_template('login.html')
+            else:
+                flash('您的用户名与密码不匹配。')  # 如果验证失败，显示错误消息
+                return redirect(url_for('login'))  # 重定向回登录页面
+        else:
+            flash('您的用户名未注册，现帮您跳至注册页')  # 如果验证失败，显示错误消息
+            return redirect(url_for('register'))  # 重定向回注册
+    else:
+        return render_template('login.html')
 
 
 # 用户注册
@@ -628,87 +590,55 @@ def register():
         if not name_user or not username or not password_hash:
             flash('无效的输入。')
             return redirect(url_for('register'))  # 重定向回注册页面
-
-        # 验证是否被注册
-        if User_info.query.filter_by(
-                username=username).first() or User_info.query.filter_by(
-                    name_user=name_user).first():
-            flash('“称呼”或用户名已被注册，请更改用户名。')  # 如果验证失败，显示错误消息
-            return redirect(url_for('register'))
-
-        # 信息写入 Area_info
-        row_area = Area_info(name_area=name_area)
-        if Area_info.query.filter_by(name_area=name_area).first():
-            flash('这个地区不止您一位注册')  # 如果验证失败，显示错误消息
-            db.session.commit(
-            )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
         else:
-            flash('在这个地区，您是第一位注册')
-            db.session.add(row_area)  # 添加到数据库会话
-            db.session.commit(
-            )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
+            # 验证是否被注册
+            if User_info.query.filter_by(
+                    username=username).first() or User_info.query.filter_by(
+                        name_user=name_user).first():
+                flash('“称呼”或用户名已被注册，请更改用户名。')  # 如果验证失败，显示错误消息
+                return redirect(url_for('register'))
 
-        # 信息写入 User_info
-        row_user = User_info(
-            name_user=name_user,
-            username=username,
-            password_hash=generate_password_hash(password_hash),
-            id_area=Area_info.query.filter_by(name_area=name_area).first().
-            id_area  # 这里用外键，filter_by()。借助先前把 name_area提交数据库的 area_info 表中自动生成的 id_area。
-        )
-        db.session.add(row_user)  # 添加到数据库会话
-        db.session.commit()  # 提交数据库会话
-        flash('注册成功。已跳转至登录页，请登录')  # 如果验证失败，显示错误消息
-        return redirect(url_for('login'))
+            # 信息写入 Area_info
+            else:
+                row_area = Area_info(name_area=name_area)
+            if Area_info.query.filter_by(name_area=name_area).first():
+                flash('这个地区不止您一位注册')  # 如果验证失败，显示错误消息
+                db.session.commit(
+                )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
+            else:
+                flash('在这个地区，您是第一位注册')
+                db.session.add(row_area)  # 添加到数据库会话
+                db.session.commit(
+                )  # 先把 name_area 提交数据库的 area_info 表中，这将自动生成 id_area。管理员的 id_admin 先不管了。
 
-    return render_template('register.html')
-
-
-# # 管理员登录
-# login_manager.login_view = 'adminlogin'  # 为了让这个重定向操作正确执行，我们还需要把 login_manager.login_view 的值设为我们程序的登录视图端点（函数名），把这一行代码放到 login_manager 实例定义下面即可：
-
-# @login_manager.user_loader
-# def load_user(id_admin):  # 创建用户加载回调函数，接受用户 ID 作为参数
-#     """Flask-Login 提供了一个 current_user 变量，注册这个函数的目的是，当程序运行后，如果用户已登录， current_user 变量的值会是当前用户的用户模型类记录。"""
-#     user = Admin_info.query.get(int(id_admin))  # 用 ID 作为 User_info 模型的主键查询对应的用户
-#     return user  # 返回用户对象
-
-# @app.route('/adminlogin', methods=['GET', 'POST'])
-# def adminlogin():
-#     if request.method == 'POST':
-#         adminname = request.form['adminname']
-#         password = request.form['password']
-
-#         if not adminname or not password:
-#             flash('无效的输入。')
-#             return redirect(url_for('login'))
-
-#         row_admin = Admin_info.query.first()
-#         # 验证用户名和密码是否一致
-#         if adminname == row_admin.adminname and row_admin.validate_password(
-#                 password):
-#             login_user(row_admin)  # 登入用户。注意这里要选用特定的 column
-#             flash('管理员，您登录成功。')
-#             return redirect(url_for('index'))  # 重定向到主页
-
-#         flash('管理员，您的用户名与密码不匹配。')  # 如果验证失败，显示错误消息
-#         return redirect(url_for('adminlogin'))  # 重定向回登录页面
-
-#     return render_template('adminlogin.html')
+            # 信息写入 User_info
+            row_user = User_info(
+                name_user=name_user,
+                username=username,
+                password_hash=generate_password_hash(password_hash),
+                id_area=Area_info.query.filter_by(name_area=name_area).first().
+                id_area  # 这里用外键，filter_by()。借助先前把 name_area提交数据库的 area_info 表中自动生成的 id_area。
+            )
+            db.session.add(row_user)  # 添加到数据库会话
+            db.session.commit()  # 提交数据库会话
+            flash('注册成功。已跳转至登录页，请登录')  # 如果验证失败，显示错误消息
+            return redirect(url_for('login'))
+    else:
+        return render_template('register.html')
 
 
 # 与登录相对，登出操作则需要调用 logout_user() 函数，使用下面的视图函数实现
 @app.route('/logout')
 @login_required  # 用于视图保护，后面会详细介绍
 def logout():
-    global y0, y00, id_user, id_area, NAME_USER , list_area_name_area # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
+    global y0, y00, id_user, id_area, NAME_USER, list_area_name_area  # VSC 绝了，可以知道这一行 global 来的变量在哪被“修改过！！！”
     """初始化"""
     y0 = ''
     y00 = ''
     id_user = ''
     id_area = ''
     NAME_USER = ''
-    list_area_name_area = []
+    list_area_name_area = []  # 虽然说每次查询前都要清空，但……这里会不会出现“头咬尾巴”的情况啊
     logout_user()  # 登出用户
     flash('再见~')
     return redirect(url_for('index'))  # 重定向回首页
@@ -722,7 +652,7 @@ def settings():
         name_user = request.form['name_user']
         username = request.form['username']
 
-        if not name_user or len(name_user) > 20:
+        if not name_user:
             flash('无效的输入。')
             return redirect(url_for('settings'))
         if User_info.query.filter_by(
@@ -741,7 +671,7 @@ def settings():
         flash('您的“称呼”与“用户名”设置成功。')
         return redirect(url_for('index'))
 
-    return render_template('settings.html')
+    return render_template('settings.html', NAME_USER=current_user.name_user)
 
 
 if __name__ == "__main__":
