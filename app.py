@@ -502,8 +502,10 @@ def inject_user():  # 函数名可以随意修改
 
 # flash() 函数在内部会把消息存储到 Flask 提供的 session 对象里。
 # session 用来在请求间存储数据，它会把数据签名后存储到浏览器的 Cookie 中，所以我们需要设置签名所需的密钥：
-app.config['SECRET_KEY'] = 'dev'  # 等同于 app.secret_key = 'dev'
-
+# app.config['SECRET_KEY'] = 'dev'  # 等同于 app.secret_key = 'dev'
+# 在部署章节中，上一行代码被改为：
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'dev')
+app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(os.path.dirname(app.root_path), os.getenv('DATABASE_FILE', 'my_ha_data.db'))
 
 # 生成农户账户
 @app.cli.command()
