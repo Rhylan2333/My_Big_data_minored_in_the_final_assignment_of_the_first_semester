@@ -32,7 +32,12 @@ app = Flask(__name__)
 
 app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(
     os.path.dirname(app.root_path), 'myha/', os.getenv(
-        'DATABASE_FILE', 'my_ha_data.db'))  # 这个在线下一用就找不到数据库的位置，添加了 'myha/' 后可以在线下了。希望线上可以好
+        'DATABASE_FILE', 'my_ha_data.db'))  # 这个在线下一用就找不到数据库的位置，添加了 'myha/' 后可以在线下了。但是！线上一定不能要它！！！
+
+# app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(
+#     os.path.dirname(app.root_path), os.getenv(
+#         'DATABASE_FILE', 'my_ha_data.db'))  # 这个在线下一用就找不到数据库的位置，添加了 'myha/' 后可以在线下了。但是！线上一定不能要它！！！
+"""上面三行就是线上的代码！！！"""
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
 # 在扩展类实例化前加载配置
