@@ -47,7 +47,7 @@
         {# 使用 length 过滤器获取 list_ha 变量的长度 #}
         {# {{ 变量|过滤器 }} #}
         <!--有花括号不能用这种注释-->
-        已有 {{ list_ha | length }} 条记录。
+        已有 {{ list_ha | length }} 条记录。&emsp;
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('index') }}">返回主页</a>
         {% endif %}{# 模板内容保护 #}
@@ -76,22 +76,22 @@
                             {{ row_ha.id_ha | int }}
                         </td>
                         <td>
-                            <code>{{ row_ha.x1 | round(1, 'floor') }}</code>&emsp;
+                            <code>{{ row_ha.x1 | round(1, 'floor') }}</code>
                         </td>
                         <td>
-                            <code>{{ row_ha.x2 | round(1, 'floor') }}</code>&emsp;
+                            <code>{{ row_ha.x2 | round(1, 'floor') }}</code>
                         </td>
                         <td>
-                            <code>{{ row_ha.y | round(2, 'floor') }}</code>&emsp;
+                            <code>{{ row_ha.y | round(2, 'floor') }}</code>
                         </td>
                         <td>
-                            <code>{{ Area_info.query.filter_by(id_area=row_ha.id_area).first().name_area }}</code>&emsp;
+                            <code>{{ Area_info.query.filter_by(id_area=row_ha.id_area).first().name_area }}</code>
                         </td>
                         <td>
-                            <code>{{ row_ha.date }}{# 等同于 row_ha['x1'] #}</code>&emsp;
+                            <code>{{ row_ha.date }}{# 等同于 row_ha['x1'] #}</code>
                         </td>
                         <td>
-                            <code>{{ User_info.query.filter_by(id_user=row_ha.id_user).first().name_user }}</code>&emsp;
+                            <code>{{ User_info.query.filter_by(id_user=row_ha.id_user).first().name_user }}</code>
                         </td>
                         <td class="table-info">
                             <!-- <span class="float-right"> -->

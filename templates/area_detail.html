@@ -28,7 +28,7 @@
         {# 使用 length 过滤器获取 list_area 变量的长度 #}
         {# {{ 变量|过滤器 }} #}
         <!--有花括号不能用这种注释-->
-        已有 {{ list_area | length }} 条记录。
+        已有 {{ list_area | length }} 条记录。&emsp;
         {% if current_user.is_authenticated %}
         <a href="{{ url_for('index') }}">返回主页</a>
         {% endif %}{# 模板内容保护 #}
